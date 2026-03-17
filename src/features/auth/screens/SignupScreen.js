@@ -1,15 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import {
-  View,
-  TextInput,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  Animated,
-  TouchableOpacity,
-  Text,
-  ScrollView,
-} from 'react-native';
+import { View, TextInput, StyleSheet, KeyboardAvoidingView, Platform, Animated, TouchableOpacity, Text, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -31,19 +21,8 @@ const M3TextInput = ({ icon, placeholder, secureTextEntry, value, onChangeText, 
 
   return (
     <View style={styles.inputContainer}>
-      <View
-        style={[
-          styles.inputField,
-          isFocused && styles.inputFieldFocused,
-          error && styles.inputFieldError,
-        ]}
-      >
-        <Ionicons 
-          name={icon} 
-          size={22} 
-          color={isFocused ? M3_COLORS.primary : M3_COLORS.textSecondary} 
-          style={styles.inputIcon} 
-        />
+      <View style={[styles.inputField, isFocused && styles.inputFieldFocused, error && styles.inputFieldError]}>
+        <Ionicons name={icon} size={22} color={isFocused ? M3_COLORS.primary : M3_COLORS.textSecondary} style={styles.inputIcon} />
         <TextInput
           style={styles.textInput}
           placeholder={placeholder}
@@ -58,11 +37,7 @@ const M3TextInput = ({ icon, placeholder, secureTextEntry, value, onChangeText, 
         />
         {secureTextEntry && (
           <TouchableOpacity onPress={() => setShowPassword(!showPassword)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <Ionicons
-              name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-              size={22}
-              color={M3_COLORS.textSecondary}
-            />
+            <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={22} color={M3_COLORS.textSecondary} />
           </TouchableOpacity>
         )}
       </View>
@@ -78,14 +53,10 @@ const SignupScreen = ({ navigation }) => {
   const [errors, setErrors] = useState({});
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(20)).current;
 
   useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
-      Animated.spring(slideAnim, { toValue: 0, tension: 50, friction: 8, useNativeDriver: true }),
-    ]).start();
-  }, [fadeAnim, slideAnim]);
+    Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }).start();
+  }, [fadeAnim]);
 
   const validate = () => {
     const errs = {};
@@ -102,11 +73,21 @@ const SignupScreen = ({ navigation }) => {
   const handleSignup = async () => {
     if (validate()) {
       try {
-        // Save credentials to local storage
-        await AsyncStorage.setItem('user_email', email.toLowerCase().trim());
-        await AsyncStorage.setItem('user_password', password);
-        await AsyncStorage.setItem('user_name', name.trim());
+        const usersStr = await AsyncStorage.getItem('users_db');
+        const users = usersStr ? JSON.parse(usersStr) : {};
+        const normalizedEmail = email.toLowerCase().trim();
+
+        if (users[normalizedEmail]) {
+          setErrors({ email: 'An account with this email already exists.' });
+          return;
+        }
+
+        // Save to DB mock
+        users[normalizedEmail] = { name: name.trim(), password };
+        await AsyncStorage.setItem('users_db', JSON.stringify(users));
         
+        // Auto-login
+        await AsyncStorage.setItem('currentUser', normalizedEmail);
         navigation.replace('Main');
       } catch (error) {
         console.error('Failed to save user data:', error);
@@ -116,67 +97,29 @@ const SignupScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.root}>
-      <TouchableOpacity 
-        style={styles.backButton} 
-        onPress={() => navigation.goBack()}
-        hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
-      >
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()} hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}>
         <Ionicons name="arrow-back" size={26} color={M3_COLORS.textPrimary} />
       </TouchableOpacity>
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
-      >
-        <ScrollView 
-          contentContainerStyle={styles.scrollContent} 
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <Animated.View
-            style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
-          >
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.keyboardView}>
+        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          <Animated.View style={{ opacity: fadeAnim }}>
+            
+            <View style={styles.iconHeader}>
+              <View style={styles.iconCircle}>
+                <Ionicons name="map" size={50} color={M3_COLORS.primary} />
+              </View>
+            </View>
+
             <View style={styles.header}>
               <Text style={styles.heroTitle}>Create account</Text>
-              <Text style={styles.heroSubtitle}>
-                Join Wanderlust and start planning your perfect getaway.
-              </Text>
+              <Text style={styles.heroSubtitle}>Join Wanderlust and start planning your perfect getaway.</Text>
             </View>
 
             <View style={styles.form}>
-              <M3TextInput
-                icon="person-outline"
-                placeholder="Full name"
-                value={name}
-                onChangeText={(t) => {
-                  setName(t);
-                  if (errors.name) setErrors((p) => ({ ...p, name: undefined }));
-                }}
-                error={errors.name}
-              />
-
-              <M3TextInput
-                icon="mail-outline"
-                placeholder="Email address"
-                value={email}
-                onChangeText={(t) => {
-                  setEmail(t);
-                  if (errors.email) setErrors((p) => ({ ...p, email: undefined }));
-                }}
-                error={errors.email}
-              />
-              
-              <M3TextInput
-                icon="lock-closed-outline"
-                placeholder="Password"
-                secureTextEntry
-                value={password}
-                onChangeText={(t) => {
-                  setPassword(t);
-                  if (errors.password) setErrors((p) => ({ ...p, password: undefined }));
-                }}
-                error={errors.password}
-              />
+              <M3TextInput icon="person-outline" placeholder="Full name" value={name} onChangeText={(t) => { setName(t); if (errors.name) setErrors((p) => ({ ...p, name: undefined })); }} error={errors.name} />
+              <M3TextInput icon="mail-outline" placeholder="Email address" value={email} onChangeText={(t) => { setEmail(t); if (errors.email) setErrors((p) => ({ ...p, email: undefined })); }} error={errors.email} />
+              <M3TextInput icon="lock-closed-outline" placeholder="Password" secureTextEntry value={password} onChangeText={(t) => { setPassword(t); if (errors.password) setErrors((p) => ({ ...p, password: undefined })); }} error={errors.password} />
 
               <TouchableOpacity style={styles.primaryButton} onPress={handleSignup} activeOpacity={0.8}>
                 <Text style={styles.primaryButtonText}>Sign up</Text>
@@ -184,7 +127,7 @@ const SignupScreen = ({ navigation }) => {
 
               <View style={styles.signupPrompt}>
                 <Text style={styles.promptText}>Already have an account? </Text>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
+                <TouchableOpacity onPress={() => navigation.navigate('Login')}>
                   <Text style={styles.promptAction}>Sign in</Text>
                 </TouchableOpacity>
               </View>
@@ -198,10 +141,12 @@ const SignupScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: M3_COLORS.background },
-  backButton: { position: 'absolute', top: Platform.OS === 'ios' ? 50 : 20, left: 20, zIndex: 10 },
+  backButton: { position: 'absolute', top: Platform.OS === 'ios' ? 60 : 20, left: 20, zIndex: 10 },
   keyboardView: { flex: 1 },
-  scrollContent: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 32, paddingTop: 80, paddingBottom: 40 },
-  header: { marginBottom: 40, alignItems: 'flex-start' },
+  scrollContent: { flexGrow: 1, paddingHorizontal: 32, paddingTop: 100, paddingBottom: 40 },
+  iconHeader: { marginBottom: 30, alignItems: 'flex-start' },
+  iconCircle: { width: 80, height: 80, borderRadius: 24, backgroundColor: '#E3F2FD', justifyContent: 'center', alignItems: 'center' },
+  header: { marginBottom: 30, alignItems: 'flex-start' },
   heroTitle: { fontFamily: 'GoogleSans-Bold', fontSize: 36, color: M3_COLORS.textPrimary, letterSpacing: -0.5, marginBottom: 8 },
   heroSubtitle: { fontFamily: 'GoogleSans-Regular', fontSize: 16, color: M3_COLORS.textSecondary, lineHeight: 24 },
   form: { width: '100%' },

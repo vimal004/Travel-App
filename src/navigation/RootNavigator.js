@@ -10,6 +10,7 @@ import LoginScreen from '../features/auth/screens/LoginScreen';
 import MainTabNavigator from './MainTabNavigator';
 import DetailScreen from '../features/destinations/screens/DetailScreen';
 import SignupScreen from '../features/auth/screens/SignupScreen';
+import WelcomeScreen from '../features/auth/screens/WelcomeScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -22,6 +23,7 @@ const RootNavigator = () => {
       }}
     >
       {/* Auth flow */}
+      <Stack.Screen name="Welcome" component={WelcomeScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Signup" component={SignupScreen} />
 
