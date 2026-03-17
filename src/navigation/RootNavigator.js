@@ -9,6 +9,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from '../features/auth/screens/LoginScreen';
 import MainTabNavigator from './MainTabNavigator';
 import DetailScreen from '../features/destinations/screens/DetailScreen';
+import SignupScreen from '../features/auth/screens/SignupScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -22,6 +23,7 @@ const RootNavigator = () => {
     >
       {/* Auth flow */}
       <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Signup" component={SignupScreen} />
 
       {/* Main app (tabs) */}
       <Stack.Screen name="Main" component={MainTabNavigator} />

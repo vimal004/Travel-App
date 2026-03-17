@@ -5,14 +5,14 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  TouchableWithoutFeedback,
-  Keyboard,
   Animated,
   TouchableOpacity,
   Text,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { isValidEmail } from '../../../utils/helpers';
 
 const M3_COLORS = {
@@ -23,7 +23,6 @@ const M3_COLORS = {
   textPrimary: '#1F1F1F',
   textSecondary: '#444746',
   error: '#B3261E',
-  outline: '#747775',
 };
 
 const M3TextInput = ({ icon, placeholder, secureTextEntry, value, onChangeText, error }) => {
@@ -100,9 +99,18 @@ const SignupScreen = ({ navigation }) => {
     return Object.keys(errs).length === 0;
   };
 
-  const handleSignup = () => {
+  const handleSignup = async () => {
     if (validate()) {
-      navigation.replace('Main');
+      try {
+        // Save credentials to local storage
+        await AsyncStorage.setItem('user_email', email.toLowerCase().trim());
+        await AsyncStorage.setItem('user_password', password);
+        await AsyncStorage.setItem('user_name', name.trim());
+        
+        navigation.replace('Main');
+      } catch (error) {
+        console.error('Failed to save user data:', error);
+      }
     }
   };
 
@@ -116,16 +124,17 @@ const SignupScreen = ({ navigation }) => {
         <Ionicons name="arrow-back" size={26} color={M3_COLORS.textPrimary} />
       </TouchableOpacity>
 
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.keyboardView}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardView}
+      >
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent} 
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
           <Animated.View
-            style={[
-              styles.content,
-              { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
-            ]}
+            style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
           >
             <View style={styles.header}>
               <Text style={styles.heroTitle}>Create account</Text>
@@ -181,118 +190,33 @@ const SignupScreen = ({ navigation }) => {
               </View>
             </View>
           </Animated.View>
-        </KeyboardAvoidingView>
-      </TouchableWithoutFeedback>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: M3_COLORS.background,
-  },
-  backButton: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 50 : 20,
-    left: 20,
-    zIndex: 10,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 32,
-    justifyContent: 'center',
-    paddingTop: 40,
-  },
-  header: {
-    marginBottom: 40,
-    alignItems: 'flex-start',
-  },
-  heroTitle: {
-    fontFamily: 'GoogleSans-Bold',
-    fontSize: 36,
-    color: M3_COLORS.textPrimary,
-    letterSpacing: -0.5,
-    marginBottom: 8,
-  },
-  heroSubtitle: {
-    fontFamily: 'GoogleSans-Regular',
-    fontSize: 16,
-    color: M3_COLORS.textSecondary,
-    lineHeight: 24,
-  },
-  form: {
-    width: '100%',
-  },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  inputField: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: M3_COLORS.surfaceVariant,
-    borderRadius: 16,
-    minHeight: 60,
-    paddingHorizontal: 16,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  inputFieldFocused: {
-    borderColor: M3_COLORS.primary,
-    backgroundColor: M3_COLORS.background,
-  },
-  inputFieldError: {
-    borderColor: M3_COLORS.error,
-  },
-  inputIcon: {
-    marginRight: 12,
-  },
-  textInput: {
-    flex: 1,
-    fontFamily: 'GoogleSans-Regular',
-    fontSize: 16,
-    color: M3_COLORS.textPrimary,
-    height: '100%',
-  },
-  errorText: {
-    fontFamily: 'GoogleSans-Regular',
-    fontSize: 12,
-    color: M3_COLORS.error,
-    marginTop: 6,
-    marginLeft: 16,
-  },
-  primaryButton: {
-    backgroundColor: M3_COLORS.primary,
-    borderRadius: 100,
-    height: 56,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 12,
-    marginBottom: 24,
-  },
-  primaryButtonText: {
-    fontFamily: 'GoogleSans-Medium',
-    fontSize: 16,
-    color: M3_COLORS.onPrimary,
-  },
-  signupPrompt: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  promptText: {
-    fontFamily: 'GoogleSans-Regular',
-    fontSize: 14,
-    color: M3_COLORS.textSecondary,
-  },
-  promptAction: {
-    fontFamily: 'GoogleSans-Medium',
-    fontSize: 14,
-    color: M3_COLORS.primary,
-  },
+  root: { flex: 1, backgroundColor: M3_COLORS.background },
+  backButton: { position: 'absolute', top: Platform.OS === 'ios' ? 50 : 20, left: 20, zIndex: 10 },
+  keyboardView: { flex: 1 },
+  scrollContent: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 32, paddingTop: 80, paddingBottom: 40 },
+  header: { marginBottom: 40, alignItems: 'flex-start' },
+  heroTitle: { fontFamily: 'GoogleSans-Bold', fontSize: 36, color: M3_COLORS.textPrimary, letterSpacing: -0.5, marginBottom: 8 },
+  heroSubtitle: { fontFamily: 'GoogleSans-Regular', fontSize: 16, color: M3_COLORS.textSecondary, lineHeight: 24 },
+  form: { width: '100%' },
+  inputContainer: { marginBottom: 20 },
+  inputField: { flexDirection: 'row', alignItems: 'center', backgroundColor: M3_COLORS.surfaceVariant, borderRadius: 16, minHeight: 60, paddingHorizontal: 16, borderWidth: 2, borderColor: 'transparent' },
+  inputFieldFocused: { borderColor: M3_COLORS.primary, backgroundColor: M3_COLORS.background },
+  inputFieldError: { borderColor: M3_COLORS.error },
+  inputIcon: { marginRight: 12 },
+  textInput: { flex: 1, fontFamily: 'GoogleSans-Regular', fontSize: 16, color: M3_COLORS.textPrimary, height: '100%' },
+  errorText: { fontFamily: 'GoogleSans-Regular', fontSize: 12, color: M3_COLORS.error, marginTop: 6, marginLeft: 16 },
+  primaryButton: { backgroundColor: M3_COLORS.primary, borderRadius: 100, height: 56, justifyContent: 'center', alignItems: 'center', marginTop: 12, marginBottom: 24 },
+  primaryButtonText: { fontFamily: 'GoogleSans-Medium', fontSize: 16, color: M3_COLORS.onPrimary },
+  signupPrompt: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
+  promptText: { fontFamily: 'GoogleSans-Regular', fontSize: 14, color: M3_COLORS.textSecondary },
+  promptAction: { fontFamily: 'GoogleSans-Medium', fontSize: 14, color: M3_COLORS.primary },
 });
 
 export default SignupScreen;
