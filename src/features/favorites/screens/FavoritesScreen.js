@@ -16,10 +16,13 @@ import { Ionicons } from '@expo/vector-icons';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import Typography from '../../../components/Typography';
 import { useFavorites } from '../context/FavoritesContext';
-import { COLORS, SIZES, SHADOWS, FONTS } from '../../../config/theme';
+import { SIZES, SHADOWS, FONTS } from '../../../config/theme';
+import { useTheme } from '../../../config/ThemeContext';
 
 const FavoritesScreen = ({ navigation }) => {
   const { favorites, removeFavorite } = useFavorites();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
   // ── Beautiful empty state ──
   if (favorites.length === 0) {
@@ -30,7 +33,7 @@ const FavoritesScreen = ({ navigation }) => {
         </View>
         <View style={styles.emptyContainer}>
           <View style={styles.emptyIconCircle}>
-            <Ionicons name="heart-outline" size={56} color={COLORS.accent} />
+            <Ionicons name="heart-outline" size={56} color={colors.accent} />
           </View>
           <Typography variant="title" style={styles.emptyTitle}>
             No favorites yet
@@ -65,7 +68,7 @@ const FavoritesScreen = ({ navigation }) => {
             {item.name}
           </Typography>
           <View style={styles.locationRow}>
-            <Ionicons name="location-sharp" size={13} color={COLORS.accent} />
+            <Ionicons name="location-sharp" size={13} color={colors.accent} />
             <Typography variant="caption" style={styles.locationText}>
               {item.country || 'Unknown'}
             </Typography>
@@ -76,7 +79,7 @@ const FavoritesScreen = ({ navigation }) => {
           onPress={() => removeFavorite(item.id)}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Ionicons name="heart-dislike-outline" size={20} color={COLORS.heart} />
+          <Ionicons name="heart-dislike-outline" size={20} color={colors.heart} />
         </TouchableOpacity>
       </View>
     </TouchableOpacity>
@@ -101,7 +104,7 @@ const FavoritesScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -110,8 +113,8 @@ const styles = StyleSheet.create({
     paddingBottom: 18,
   },
   countBadge: {
-    backgroundColor: '#EFF6FF',
-    color: COLORS.accent,
+    backgroundColor: colors.surfaceVariant || '#EFF6FF',
+    color: colors.accent,
     fontFamily: FONTS.medium,
     paddingHorizontal: 12,
     paddingVertical: 4,
@@ -124,7 +127,7 @@ const styles = StyleSheet.create({
   },
   // ── Card ──
   card: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: colors.surface,
     borderRadius: SIZES.radiusLg,
     overflow: 'hidden',
     marginBottom: SIZES.md,
@@ -150,14 +153,14 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
   locationText: {
-    color: COLORS.secondaryText,
+    color: colors.secondaryText,
     fontSize: 12,
   },
   removeBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#FEF2F2',
+    backgroundColor: colors.surfaceVariant || '#FEF2F2',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -173,7 +176,7 @@ const styles = StyleSheet.create({
     width: 110,
     height: 110,
     borderRadius: 55,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: colors.surfaceVariant || '#EFF6FF',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
@@ -181,21 +184,23 @@ const styles = StyleSheet.create({
   emptyTitle: {
     textAlign: 'center',
     marginBottom: 8,
+    color: colors.primaryText,
   },
   emptySubtitle: {
     textAlign: 'center',
-    color: COLORS.secondaryText,
+    color: colors.secondaryText,
     lineHeight: 22,
     marginBottom: 28,
   },
   exploreBtn: {
-    backgroundColor: COLORS.accent,
+    backgroundColor: colors.accent,
     paddingHorizontal: 28,
     paddingVertical: 14,
     borderRadius: SIZES.radiusFull,
   },
   exploreBtnText: {
     fontSize: 14,
+    color: colors.white,
   },
 });
 

@@ -5,29 +5,20 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { isValidEmail } from '../../../utils/helpers';
 import { useFavorites } from '../../favorites/context/FavoritesContext';
+import { useTheme } from '../../../config/ThemeContext';
 
-const M3_COLORS = {
-  background: '#FFFFFF',
-  surfaceVariant: '#F1F3F4',
-  primary: '#0A56D1',
-  onPrimary: '#FFFFFF',
-  textPrimary: '#1F1F1F',
-  textSecondary: '#444746',
-  error: '#B3261E',
-};
-
-const M3TextInput = ({ icon, placeholder, secureTextEntry, value, onChangeText, error }) => {
+const M3TextInput = ({ icon, placeholder, secureTextEntry, value, onChangeText, error, colors, styles }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   return (
     <View style={styles.inputContainer}>
       <View style={[styles.inputField, isFocused && styles.inputFieldFocused, error && styles.inputFieldError]}>
-        <Ionicons name={icon} size={22} color={isFocused ? M3_COLORS.primary : M3_COLORS.textSecondary} style={styles.inputIcon} />
+        <Ionicons name={icon} size={22} color={isFocused ? colors.primary : colors.secondaryText} style={styles.inputIcon} />
         <TextInput
           style={styles.textInput}
           placeholder={placeholder}
-          placeholderTextColor={M3_COLORS.textSecondary}
+          placeholderTextColor={colors.secondaryText}
           secureTextEntry={secureTextEntry && !showPassword}
           value={value}
           onChangeText={onChangeText}
@@ -38,7 +29,7 @@ const M3TextInput = ({ icon, placeholder, secureTextEntry, value, onChangeText, 
         />
         {secureTextEntry && (
           <TouchableOpacity onPress={() => setShowPassword(!showPassword)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={22} color={M3_COLORS.textSecondary} />
+            <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={22} color={colors.secondaryText} />
           </TouchableOpacity>
         )}
       </View>
@@ -48,6 +39,8 @@ const M3TextInput = ({ icon, placeholder, secureTextEntry, value, onChangeText, 
 };
 
 const LoginScreen = ({ navigation }) => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
@@ -105,7 +98,7 @@ const LoginScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.root}>
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()} hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}>
-        <Ionicons name="arrow-back" size={26} color={M3_COLORS.textPrimary} />
+        <Ionicons name="arrow-back" size={26} color={colors.primaryText} />
       </TouchableOpacity>
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.keyboardView}>
@@ -114,7 +107,7 @@ const LoginScreen = ({ navigation }) => {
             
             <View style={styles.iconHeader}>
               <View style={styles.iconCircle}>
-                <Ionicons name="compass" size={54} color={M3_COLORS.primary} />
+                <Ionicons name="compass" size={54} color={colors.primary} />
               </View>
             </View>
 
@@ -130,6 +123,8 @@ const LoginScreen = ({ navigation }) => {
                 value={email}
                 onChangeText={(t) => { setEmail(t); if (errors.email) setErrors((p) => ({ ...p, email: undefined })); }}
                 error={errors.email}
+                colors={colors}
+                styles={styles}
               />
               <M3TextInput
                 icon="lock-closed-outline"
@@ -138,6 +133,8 @@ const LoginScreen = ({ navigation }) => {
                 value={password}
                 onChangeText={(t) => { setPassword(t); if (errors.password) setErrors((p) => ({ ...p, password: undefined })); }}
                 error={errors.password}
+                colors={colors}
+                styles={styles}
               />
 
               <TouchableOpacity style={styles.forgotPassword}>
@@ -162,31 +159,31 @@ const LoginScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: M3_COLORS.background },
+const createStyles = (colors) => StyleSheet.create({
+  root: { flex: 1, backgroundColor: colors.background },
   backButton: { position: 'absolute', top: Platform.OS === 'ios' ? 60 : 20, left: 20, zIndex: 10 },
   keyboardView: { flex: 1 },
   scrollContent: { flexGrow: 1, paddingHorizontal: 32, paddingTop: 100, paddingBottom: 40 },
   iconHeader: { marginBottom: 30, alignItems: 'flex-start' },
-  iconCircle: { width: 80, height: 80, borderRadius: 24, backgroundColor: '#E3F2FD', justifyContent: 'center', alignItems: 'center' },
+  iconCircle: { width: 80, height: 80, borderRadius: 24, backgroundColor: colors.primaryContainer || '#E3F2FD', justifyContent: 'center', alignItems: 'center' },
   header: { marginBottom: 30, alignItems: 'flex-start' },
-  heroTitle: { fontFamily: 'GoogleSans-Bold', fontSize: 36, color: M3_COLORS.textPrimary, letterSpacing: -0.5, marginBottom: 8 },
-  heroSubtitle: { fontFamily: 'GoogleSans-Regular', fontSize: 16, color: M3_COLORS.textSecondary, lineHeight: 24 },
+  heroTitle: { fontFamily: 'GoogleSans-Bold', fontSize: 36, color: colors.primaryText, letterSpacing: -0.5, marginBottom: 8 },
+  heroSubtitle: { fontFamily: 'GoogleSans-Regular', fontSize: 16, color: colors.secondaryText, lineHeight: 24 },
   form: { width: '100%' },
   inputContainer: { marginBottom: 20 },
-  inputField: { flexDirection: 'row', alignItems: 'center', backgroundColor: M3_COLORS.surfaceVariant, borderRadius: 16, minHeight: 60, paddingHorizontal: 16, borderWidth: 2, borderColor: 'transparent' },
-  inputFieldFocused: { borderColor: M3_COLORS.primary, backgroundColor: M3_COLORS.background },
-  inputFieldError: { borderColor: M3_COLORS.error },
+  inputField: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surfaceVariant, borderRadius: 16, minHeight: 60, paddingHorizontal: 16, borderWidth: 2, borderColor: 'transparent' },
+  inputFieldFocused: { borderColor: colors.primary, backgroundColor: colors.background },
+  inputFieldError: { borderColor: colors.error },
   inputIcon: { marginRight: 12 },
-  textInput: { flex: 1, fontFamily: 'GoogleSans-Regular', fontSize: 16, color: M3_COLORS.textPrimary, height: '100%' },
-  errorText: { fontFamily: 'GoogleSans-Regular', fontSize: 12, color: M3_COLORS.error, marginTop: 6, marginLeft: 16 },
+  textInput: { flex: 1, fontFamily: 'GoogleSans-Regular', fontSize: 16, color: colors.primaryText, height: '100%' },
+  errorText: { fontFamily: 'GoogleSans-Regular', fontSize: 12, color: colors.error, marginTop: 6, marginLeft: 16 },
   forgotPassword: { alignSelf: 'flex-end', marginBottom: 32 },
-  forgotPasswordText: { fontFamily: 'GoogleSans-Medium', fontSize: 14, color: M3_COLORS.primary },
-  primaryButton: { backgroundColor: M3_COLORS.primary, borderRadius: 100, height: 56, justifyContent: 'center', alignItems: 'center', marginBottom: 24 },
-  primaryButtonText: { fontFamily: 'GoogleSans-Medium', fontSize: 16, color: M3_COLORS.onPrimary },
+  forgotPasswordText: { fontFamily: 'GoogleSans-Medium', fontSize: 14, color: colors.primary },
+  primaryButton: { backgroundColor: colors.primary, borderRadius: 100, height: 56, justifyContent: 'center', alignItems: 'center', marginBottom: 24 },
+  primaryButtonText: { fontFamily: 'GoogleSans-Medium', fontSize: 16, color: colors.onPrimary || '#FFFFFF' },
   signupPrompt: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
-  promptText: { fontFamily: 'GoogleSans-Regular', fontSize: 14, color: M3_COLORS.textSecondary },
-  promptAction: { fontFamily: 'GoogleSans-Medium', fontSize: 14, color: M3_COLORS.primary },
+  promptText: { fontFamily: 'GoogleSans-Regular', fontSize: 14, color: colors.secondaryText },
+  promptAction: { fontFamily: 'GoogleSans-Medium', fontSize: 14, color: colors.primary },
 });
 
 export default LoginScreen;

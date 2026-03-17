@@ -4,16 +4,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
-const M3_COLORS = {
-  background: '#FFFFFF',
-  primary: '#0A56D1',
-  onPrimary: '#FFFFFF',
-  surfaceVariant: '#F1F3F4',
-  textPrimary: '#1F1F1F',
-  textSecondary: '#444746',
-};
+import { useTheme } from '../../../config/ThemeContext';
 
 const WelcomeScreen = ({ navigation }) => {
+  const { colors, isDarkMode } = useTheme();
+  const styles = createStyles(colors);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
   const floatAnim = useRef(new Animated.Value(0)).current;
@@ -39,12 +34,12 @@ const WelcomeScreen = ({ navigation }) => {
       {/* Visual Header replacing the animation */}
       <View style={styles.heroContainer}>
         <LinearGradient
-          colors={['#E3F2FD', '#BBDEFB', '#FFFFFF']}
+          colors={isDarkMode ? ['#1A237E', '#3F51B5', colors.background] : ['#E3F2FD', '#BBDEFB', colors.background]}
           style={styles.gradient}
         />
         <Animated.View style={[styles.iconWrapper, { transform: [{ translateY: floatAnim }] }]}>
           <View style={styles.iconCircle}>
-            <Ionicons name="airplane" size={64} color={M3_COLORS.primary} style={styles.icon} />
+            <Ionicons name="airplane" size={64} color={colors.primary} style={styles.icon} />
           </View>
         </Animated.View>
       </View>
@@ -75,8 +70,8 @@ const WelcomeScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: M3_COLORS.background },
+const createStyles = (colors) => StyleSheet.create({
+  root: { flex: 1, backgroundColor: colors.background },
   heroContainer: {
     flex: 1.2,
     justifyContent: 'center',
@@ -93,7 +88,7 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 60,
   },
   iconWrapper: {
-    shadowColor: M3_COLORS.primary,
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0,
     shadowRadius: 0,
@@ -102,7 +97,7 @@ const styles = StyleSheet.create({
   iconCircle: {
     width: 140,
     height: 140,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 70,
     justifyContent: 'center',
     alignItems: 'center',
@@ -124,19 +119,19 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: 'GoogleSans-Bold',
     fontSize: 40,
-    color: M3_COLORS.textPrimary,
+    color: colors.primaryText,
     marginBottom: 12,
   },
   subtitle: {
     fontFamily: 'GoogleSans-Regular',
     fontSize: 16,
-    color: M3_COLORS.textSecondary,
+    color: colors.secondaryText,
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 40,
   },
   primaryButton: {
-    backgroundColor: M3_COLORS.primary,
+    backgroundColor: colors.primary,
     width: '100%',
     borderRadius: 100,
     height: 56,
@@ -147,7 +142,7 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     fontFamily: 'GoogleSans-Medium',
     fontSize: 16,
-    color: M3_COLORS.onPrimary,
+    color: colors.onPrimary || '#FFFFFF',
   },
   secondaryButton: {
     width: '100%',
@@ -155,12 +150,12 @@ const styles = StyleSheet.create({
     height: 56,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: M3_COLORS.surfaceVariant,
+    backgroundColor: colors.surfaceVariant,
   },
   secondaryButtonText: {
     fontFamily: 'GoogleSans-Medium',
     fontSize: 16,
-    color: M3_COLORS.textPrimary,
+    color: colors.primaryText,
   },
 });
 

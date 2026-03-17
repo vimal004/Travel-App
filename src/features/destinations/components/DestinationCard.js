@@ -11,16 +11,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFavorites } from '../../favorites/context/FavoritesContext';
 import ShimmerLoader from '../../../components/ShimmerLoader';
-
-const M3_COLORS = {
-  primary: '#0A56D1',
-  surfaceVariant: '#F1F3F4',
-  textPrimary: '#1F1F1F',
-  white: '#FFFFFF',
-  star: '#FFBA28'
-};
+import { useTheme } from '../../../config/ThemeContext';
 
 const DestinationCard = ({ item, onPress }) => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const { isFavorite, toggleFavorite } = useFavorites();
   const [isLoaded, setIsLoaded] = React.useState(false);
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -77,7 +72,7 @@ const DestinationCard = ({ item, onPress }) => {
           <Ionicons
             name={liked ? 'heart' : 'heart-outline'}
             size={22}
-            color={liked ? '#B3261E' : M3_COLORS.textPrimary}
+            color={liked ? colors.error : colors.primaryText}
           />
         </TouchableOpacity>
 
@@ -87,12 +82,12 @@ const DestinationCard = ({ item, onPress }) => {
             <View>
               <Text style={styles.title}>{item.name}</Text>
               <View style={styles.locationRow}>
-                <Ionicons name="location" size={14} color={M3_COLORS.white} />
+                <Ionicons name="location" size={14} color={colors.white} />
                 <Text style={styles.locationText}>{item.country}</Text>
               </View>
             </View>
             <View style={styles.ratingPill}>
-              <Ionicons name="star" size={14} color={M3_COLORS.star} />
+              <Ionicons name="star" size={14} color={colors.star} />
               <Text style={styles.ratingText}>{item.rating}</Text>
             </View>
           </View>
@@ -102,13 +97,13 @@ const DestinationCard = ({ item, onPress }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   wrapper: {
     marginBottom: 24,
   },
   card: {
     height: 320,
-    backgroundColor: M3_COLORS.surfaceVariant,
+    backgroundColor: colors.surfaceVariant,
     borderRadius: 28, // Expressive MD3 large rounded corners
     overflow: 'hidden',
     elevation: 4,
@@ -133,7 +128,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 16,
     right: 16,
-    backgroundColor: M3_COLORS.white,
+    backgroundColor: colors.surface,
     width: 44,
     height: 44,
     borderRadius: 22,
@@ -154,7 +149,7 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: 'GoogleSans-Bold',
     fontSize: 28,
-    color: M3_COLORS.white,
+    color: colors.white,
     marginBottom: 4,
     letterSpacing: -0.5,
   },
@@ -166,7 +161,7 @@ const styles = StyleSheet.create({
   locationText: {
     fontFamily: 'GoogleSans-Medium',
     fontSize: 15,
-    color: M3_COLORS.white,
+    color: colors.white,
     marginLeft: 4,
   },
   ratingPill: {
@@ -181,7 +176,7 @@ const styles = StyleSheet.create({
   ratingText: {
     fontFamily: 'GoogleSans-Bold',
     fontSize: 14,
-    color: M3_COLORS.white,
+    color: colors.white,
     marginLeft: 4,
   },
 });

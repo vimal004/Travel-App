@@ -4,7 +4,7 @@
  * shadow presets are defined here so every screen stays consistent.
  */
 
-const COLORS = {
+const LIGHT_COLORS = {
   background: '#FAFAFA',
   surface: '#FFFFFF',
   primaryText: '#111827',
@@ -21,7 +21,34 @@ const COLORS = {
   white: '#FFFFFF',
   black: '#000000',
   star: '#FBBF24',
+  surfaceVariant: '#F1F3F4',
+  primary: '#0A56D1',
+  onPrimary: '#FFFFFF',
 };
+
+const DARK_COLORS = {
+  background: '#121212',
+  surface: '#1E1E1E',
+  primaryText: '#E5E7EB',
+  secondaryText: '#9CA3AF',
+  accent: '#8AB4F8',       // Light Google Blue
+  accentDark: '#A8C7FA',
+  error: '#F28B82',
+  heart: '#F28B82',
+  border: '#374151',
+  overlay: 'rgba(0,0,0,0.65)',
+  skeleton: '#374151',
+  gradientStart: '#8AB4F8',
+  gradientEnd: '#4285F4',
+  white: '#FFFFFF',
+  black: '#000000',
+  star: '#FBBF24',
+  surfaceVariant: '#2D2F31',
+  primary: '#A8C7FA',
+  onPrimary: '#0A56D1',
+};
+
+const COLORS = LIGHT_COLORS; // Temporary backward compatibility
 
 const FONTS = {
   regular: 'GoogleSans-Regular',
@@ -86,4 +113,4 @@ const SHADOWS = {
   },
 };
 
-export { COLORS, FONTS, SIZES, SHADOWS };
+export { COLORS, LIGHT_COLORS, DARK_COLORS, FONTS, SIZES, SHADOWS };

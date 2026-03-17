@@ -21,12 +21,12 @@ import { NavigationContainer } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { FavoritesProvider } from './src/features/favorites/context/FavoritesContext';
 import RootNavigator from './src/navigation/RootNavigator';
+import { ThemeProvider, useTheme } from './src/config/ThemeContext';
 import { COLORS } from './src/config/theme';
 
-export default function App() {
-  // Load DM Sans — a clean geometric sans-serif very similar to Google Sans.
-  // The font keys here must match the FONTS constants in theme.js.
-  // Inside App.js
+const MainApp = () => {
+  const { colors } = useTheme();
+  
   const [fontsLoaded] = useFonts({
     'GoogleSans-Regular': require('./src/assets/fonts/GoogleSans-Regular.ttf'),
     'GoogleSans-Medium': require('./src/assets/fonts/GoogleSans-Medium.ttf'),
@@ -36,19 +36,27 @@ export default function App() {
   // While fonts are loading, show a simple centered spinner.
   if (!fontsLoaded) {
     return (
-      <View style={styles.splash}>
-        <ActivityIndicator size="large" color={COLORS.accent} />
+      <View style={[styles.splash, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     );
   }
 
   return (
+    <NavigationContainer>
+      <RootNavigator />
+    </NavigationContainer>
+  );
+};
+
+export default function App() {
+  return (
     <GestureHandlerRootView style={styles.root}>
-      <FavoritesProvider>
-        <NavigationContainer>
-          <RootNavigator />
-        </NavigationContainer>
-      </FavoritesProvider>
+      <ThemeProvider>
+        <FavoritesProvider>
+          <MainApp />
+        </FavoritesProvider>
+      </ThemeProvider>
     </GestureHandlerRootView>
   );
 }
@@ -59,7 +67,6 @@ const styles = StyleSheet.create({
   },
   splash: {
     flex: 1,
-    backgroundColor: COLORS.background,
     alignItems: 'center',
     justifyContent: 'center',
   },

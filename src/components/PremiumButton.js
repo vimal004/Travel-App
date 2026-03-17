@@ -13,10 +13,12 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Typography from './Typography';
-import { COLORS, SIZES, SHADOWS } from '../config/theme';
+import { SIZES, SHADOWS } from '../config/theme';
+import { useTheme } from '../config/ThemeContext';
 
 const PremiumButton = ({ title, onPress, loading = false, style, textStyle }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const { colors } = useTheme();
 
   const onPressIn = () => {
     Animated.spring(scaleAnim, {
@@ -43,15 +45,15 @@ const PremiumButton = ({ title, onPress, loading = false, style, textStyle }) =>
         disabled={loading}
       >
         <LinearGradient
-          colors={[COLORS.gradientStart, COLORS.gradientEnd]}
+          colors={[colors.gradientStart, colors.gradientEnd]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={[styles.gradient, SHADOWS.button]}
         >
           {loading ? (
-            <ActivityIndicator color={COLORS.white} />
+            <ActivityIndicator color={colors.white} />
           ) : (
-            <Typography variant="button" style={[styles.text, textStyle]}>
+            <Typography variant="button" style={[styles.text, textStyle, { color: colors.white }]}>
               {title}
             </Typography>
           )}

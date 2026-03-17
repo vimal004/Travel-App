@@ -8,6 +8,7 @@ import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '../config/ThemeContext';
 
 import LoginScreen from '../features/auth/screens/LoginScreen';
 import MainTabNavigator from './MainTabNavigator';
@@ -18,6 +19,8 @@ import WelcomeScreen from '../features/auth/screens/WelcomeScreen';
 const Stack = createNativeStackNavigator();
 
 const RootNavigator = () => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const [isLoading, setIsLoading] = useState(true);
   const [initialRoute, setInitialRoute] = useState('Welcome');
 
@@ -49,7 +52,7 @@ const RootNavigator = () => {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0A56D1" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -82,12 +85,12 @@ const RootNavigator = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background,
   },
 });
 

@@ -18,20 +18,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DestinationCard from '../components/DestinationCard';
 import { fetchDestinations } from '../services/destinationApi';
-
-const M3_COLORS = {
-  background: '#FFFFFF',
-  surfaceVariant: '#F1F3F4',
-  primary: '#0A56D1',
-  onPrimary: '#FFFFFF',
-  textPrimary: '#1F1F1F',
-  textSecondary: '#444746',
-  error: '#B3261E',
-};
+import { useTheme } from '../../../config/ThemeContext';
 
 const CATEGORIES = ['All', 'Beaches', 'Mountains', 'Culture', 'Cities'];
 
 const FeedScreen = ({ navigation }) => {
+  const { colors, isDarkMode, toggleTheme } = useTheme();
+  const styles = createStyles(colors);
   const [destinations, setDestinations] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -123,7 +116,7 @@ const FeedScreen = ({ navigation }) => {
   if (loading && !refreshing) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={M3_COLORS.primary} />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -137,12 +130,20 @@ const FeedScreen = ({ navigation }) => {
           <Text style={styles.greeting}>{greeting}{userProfile.name ? `, ${userProfile.name.split(' ')[0]}` : ','}</Text>
           <Text style={styles.title}>Where to next?</Text>
         </View>
-        <TouchableOpacity 
-          style={styles.avatar} 
-          onPress={() => setProfileMenuVisible(true)}
-        >
-          <Ionicons name="person" size={20} color={M3_COLORS.primary} />
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity 
+            style={[styles.avatar, { marginRight: 12 }]} 
+            onPress={toggleTheme}
+          >
+            <Ionicons name={isDarkMode ? 'sunny' : 'moon'} size={20} color={colors.primary} />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.avatar} 
+            onPress={() => setProfileMenuVisible(true)}
+          >
+            <Ionicons name="person" size={20} color={colors.primary} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Profile Dropdown Menu */}
@@ -163,7 +164,7 @@ const FeedScreen = ({ navigation }) => {
               <Text style={styles.profileEmail}>{userProfile.email}</Text>
               <View style={styles.menuDivider} />
               <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-                <Ionicons name="log-out-outline" size={20} color={M3_COLORS.error} />
+                <Ionicons name="log-out-outline" size={20} color={colors.error} />
                 <Text style={styles.logoutText}>Logout</Text>
               </TouchableOpacity>
             </View>
@@ -173,17 +174,17 @@ const FeedScreen = ({ navigation }) => {
 
       {/* M3 Search Bar */}
       <View style={styles.searchContainer}>
-        <Ionicons name="search" size={22} color={M3_COLORS.textSecondary} />
+        <Ionicons name="search" size={22} color={colors.secondaryText} />
         <TextInput 
           style={styles.searchInput}
           placeholder="Search destinations..."
-          placeholderTextColor={M3_COLORS.textSecondary}
+          placeholderTextColor={colors.secondaryText}
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
         {searchQuery.length > 0 && (
           <TouchableOpacity onPress={() => setSearchQuery('')}>
-            <Ionicons name="close-circle" size={20} color={M3_COLORS.textSecondary} />
+            <Ionicons name="close-circle" size={20} color={colors.secondaryText} />
           </TouchableOpacity>
         )}
       </View>
@@ -228,13 +229,13 @@ const FeedScreen = ({ navigation }) => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={() => loadData(true)}
-            tintColor={M3_COLORS.primary}
-            colors={[M3_COLORS.primary]}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
           />
         }
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Ionicons name="map-outline" size={48} color={M3_COLORS.textSecondary} />
+            <Ionicons name="map-outline" size={48} color={colors.secondaryText} />
             <Text style={styles.emptyTitle}>No destinations found</Text>
             <Text style={styles.emptySubtitle}>Try adjusting your search or filters.</Text>
           </View>
@@ -244,14 +245,14 @@ const FeedScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: M3_COLORS.background,
+    backgroundColor: colors.background,
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: M3_COLORS.background,
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -264,35 +265,39 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
     zIndex: 1, // Ensure header is above search
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   greeting: {
     fontFamily: 'GoogleSans-Medium',
     fontSize: 16,
-    color: M3_COLORS.textSecondary,
+    color: colors.secondaryText,
     marginBottom: 4,
   },
   title: {
     fontFamily: 'GoogleSans-Bold',
     fontSize: 28,
-    color: M3_COLORS.textPrimary,
+    color: colors.primaryText,
     letterSpacing: -0.5,
   },
   avatar: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: M3_COLORS.surfaceVariant,
+    backgroundColor: colors.surfaceVariant,
     alignItems: 'center',
     justifyContent: 'center',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.1)', // subtle dimming
+    backgroundColor: 'rgba(0,0,0,0.5)', // subtle dimming
   },
   profileMenu: {
     position: 'absolute',
     top: Platform.OS === 'ios' ? 100 : 70, // Adjust drop-down location
     right: 24,
-    backgroundColor: M3_COLORS.background,
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 20,
     elevation: 8,
@@ -305,18 +310,18 @@ const styles = StyleSheet.create({
   profileName: {
     fontFamily: 'GoogleSans-Bold',
     fontSize: 18,
-    color: M3_COLORS.textPrimary,
+    color: colors.primaryText,
     marginBottom: 4,
   },
   profileEmail: {
     fontFamily: 'GoogleSans-Regular',
     fontSize: 14,
-    color: M3_COLORS.textSecondary,
+    color: colors.secondaryText,
     marginBottom: 16,
   },
   menuDivider: {
     height: 1,
-    backgroundColor: M3_COLORS.surfaceVariant,
+    backgroundColor: colors.surfaceVariant,
     marginBottom: 16,
   },
   logoutButton: {
@@ -327,13 +332,13 @@ const styles = StyleSheet.create({
   logoutText: {
     fontFamily: 'GoogleSans-Medium',
     fontSize: 16,
-    color: M3_COLORS.error,
+    color: colors.error,
     marginLeft: 12,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: M3_COLORS.surfaceVariant,
+    backgroundColor: colors.surfaceVariant,
     marginHorizontal: 24,
     paddingHorizontal: 16,
     height: 56,
@@ -344,7 +349,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: 'GoogleSans-Regular',
     fontSize: 16,
-    color: M3_COLORS.textPrimary,
+    color: colors.primaryText,
     marginLeft: 12,
   },
   chipContainer: {
@@ -356,21 +361,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 100,
-    backgroundColor: M3_COLORS.background,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: M3_COLORS.surfaceVariant,
+    borderColor: colors.surfaceVariant,
   },
   chipActive: {
-    backgroundColor: M3_COLORS.primary,
-    borderColor: M3_COLORS.primary,
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   chipText: {
     fontFamily: 'GoogleSans-Medium',
     fontSize: 14,
-    color: M3_COLORS.textSecondary,
+    color: colors.secondaryText,
   },
   chipTextActive: {
-    color: M3_COLORS.onPrimary,
+    color: colors.onPrimary,
   },
   list: {
     paddingHorizontal: 24,
@@ -383,13 +388,13 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontFamily: 'GoogleSans-Bold',
     fontSize: 18,
-    color: M3_COLORS.textPrimary,
+    color: colors.primaryText,
     marginTop: 16,
   },
   emptySubtitle: {
     fontFamily: 'GoogleSans-Regular',
     fontSize: 14,
-    color: M3_COLORS.textSecondary,
+    color: colors.secondaryText,
     marginTop: 8,
   }
 });

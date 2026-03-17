@@ -9,11 +9,15 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import FeedScreen from '../features/destinations/screens/FeedScreen';
 import FavoritesScreen from '../features/favorites/screens/FavoritesScreen';
-import { COLORS, FONTS, SIZES } from '../config/theme';
+import { FONTS, SIZES } from '../config/theme';
+import { useTheme } from '../config/ThemeContext';
 
 const Tab = createBottomTabNavigator();
 
 const MainTabNavigator = () => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -27,8 +31,8 @@ const MainTabNavigator = () => {
           }
           return <Ionicons name={iconName} size={SIZES.tabIconSize} color={color} />;
         },
-        tabBarActiveTintColor: COLORS.accent,
-        tabBarInactiveTintColor: COLORS.secondaryText,
+        tabBarActiveTintColor: colors.accent,
+        tabBarInactiveTintColor: colors.secondaryText,
         tabBarLabelStyle: {
           fontFamily: FONTS.medium,
           fontSize: 11,
@@ -43,9 +47,9 @@ const MainTabNavigator = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   tabBar: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: colors.surface,
     borderTopWidth: 0,
     height: Platform.OS === 'ios' ? 88 : 64,
     paddingBottom: Platform.OS === 'ios' ? 28 : 8,

@@ -7,12 +7,15 @@
 import React from 'react';
 import { View, StyleSheet, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS } from '../config/theme';
+import { useTheme } from '../config/ThemeContext';
 
 const ScreenWrapper = ({ children, style, edges = ['top', 'left', 'right'], noPadding = false }) => {
+  const { colors, isDarkMode } = useTheme();
+  const styles = createStyles(colors);
+
   return (
     <SafeAreaView edges={edges} style={[styles.safe, style]}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
       <View style={[styles.container, noPadding && { paddingHorizontal: 0 }]}>
         {children}
       </View>
@@ -20,10 +23,10 @@ const ScreenWrapper = ({ children, style, edges = ['top', 'left', 'right'], noPa
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: colors.background,
   },
   container: {
     flex: 1,
