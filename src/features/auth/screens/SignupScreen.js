@@ -15,11 +15,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { isValidEmail } from '../../../utils/helpers';
 
-// Material 3 / Pixel Inspired Color Palette
 const M3_COLORS = {
   background: '#FFFFFF',
-  surfaceVariant: '#F1F3F4', // Soft gray for inputs
-  primary: '#0A56D1', // Google Pixel Blue
+  surfaceVariant: '#F1F3F4',
+  primary: '#0A56D1',
   onPrimary: '#FFFFFF',
   textPrimary: '#1F1F1F',
   textSecondary: '#444746',
@@ -55,7 +54,7 @@ const M3TextInput = ({ icon, placeholder, secureTextEntry, value, onChangeText, 
           onChangeText={onChangeText}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          autoCapitalize="none"
+          autoCapitalize={secureTextEntry || placeholder === "Email address" ? "none" : "words"}
           autoCorrect={false}
         />
         {secureTextEntry && (
@@ -73,12 +72,12 @@ const M3TextInput = ({ icon, placeholder, secureTextEntry, value, onChangeText, 
   );
 };
 
-const LoginScreen = ({ navigation }) => {
+const SignupScreen = ({ navigation }) => {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
 
-  // Subtle entrance animation for the content
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
 
@@ -91,15 +90,17 @@ const LoginScreen = ({ navigation }) => {
 
   const validate = () => {
     const errs = {};
+    if (!name.trim()) errs.name = 'Full name is required';
     if (!email.trim()) errs.email = 'Email is required';
     else if (!isValidEmail(email)) errs.email = 'Enter a valid email address';
     if (!password) errs.password = 'Password is required';
+    else if (password.length < 6) errs.password = 'Password must be at least 6 characters';
     
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
-  const handleLogin = () => {
+  const handleSignup = () => {
     if (validate()) {
       navigation.replace('Main');
     }
@@ -107,6 +108,14 @@ const LoginScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.root}>
+      <TouchableOpacity 
+        style={styles.backButton} 
+        onPress={() => navigation.goBack()}
+        hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+      >
+        <Ionicons name="arrow-back" size={26} color={M3_COLORS.textPrimary} />
+      </TouchableOpacity>
+
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -119,14 +128,24 @@ const LoginScreen = ({ navigation }) => {
             ]}
           >
             <View style={styles.header}>
-              <Ionicons name="compass" size={48} color={M3_COLORS.primary} style={styles.logo} />
-              <Text style={styles.heroTitle}>Welcome back</Text>
+              <Text style={styles.heroTitle}>Create account</Text>
               <Text style={styles.heroSubtitle}>
-                Sign in to continue your next adventure.
+                Join Wanderlust and start planning your perfect getaway.
               </Text>
             </View>
 
             <View style={styles.form}>
+              <M3TextInput
+                icon="person-outline"
+                placeholder="Full name"
+                value={name}
+                onChangeText={(t) => {
+                  setName(t);
+                  if (errors.name) setErrors((p) => ({ ...p, name: undefined }));
+                }}
+                error={errors.name}
+              />
+
               <M3TextInput
                 icon="mail-outline"
                 placeholder="Email address"
@@ -150,18 +169,14 @@ const LoginScreen = ({ navigation }) => {
                 error={errors.password}
               />
 
-              <TouchableOpacity style={styles.forgotPassword}>
-                <Text style={styles.forgotPasswordText}>Forgot password?</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.primaryButton} onPress={handleLogin} activeOpacity={0.8}>
-                <Text style={styles.primaryButtonText}>Sign in</Text>
+              <TouchableOpacity style={styles.primaryButton} onPress={handleSignup} activeOpacity={0.8}>
+                <Text style={styles.primaryButtonText}>Sign up</Text>
               </TouchableOpacity>
 
               <View style={styles.signupPrompt}>
-                <Text style={styles.promptText}>Don't have an account? </Text>
-                <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
-                  <Text style={styles.promptAction}>Create one</Text>
+                <Text style={styles.promptText}>Already have an account? </Text>
+                <TouchableOpacity onPress={() => navigation.goBack()}>
+                  <Text style={styles.promptAction}>Sign in</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -177,6 +192,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: M3_COLORS.background,
   },
+  backButton: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 50 : 20,
+    left: 20,
+    zIndex: 10,
+  },
   keyboardView: {
     flex: 1,
   },
@@ -184,13 +205,11 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 32,
     justifyContent: 'center',
+    paddingTop: 40,
   },
   header: {
     marginBottom: 40,
     alignItems: 'flex-start',
-  },
-  logo: {
-    marginBottom: 24,
   },
   heroTitle: {
     fontFamily: 'GoogleSans-Bold',
@@ -215,7 +234,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: M3_COLORS.surfaceVariant,
-    borderRadius: 16, // Material 3 expressive input radius
+    borderRadius: 16,
     minHeight: 60,
     paddingHorizontal: 16,
     borderWidth: 2,
@@ -245,21 +264,13 @@ const styles = StyleSheet.create({
     marginTop: 6,
     marginLeft: 16,
   },
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    marginBottom: 32,
-  },
-  forgotPasswordText: {
-    fontFamily: 'GoogleSans-Medium',
-    fontSize: 14,
-    color: M3_COLORS.primary,
-  },
   primaryButton: {
     backgroundColor: M3_COLORS.primary,
-    borderRadius: 100, // True Pill shape
+    borderRadius: 100,
     height: 56,
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 12,
     marginBottom: 24,
   },
   primaryButtonText: {
@@ -284,4 +295,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LoginScreen;
+export default SignupScreen;

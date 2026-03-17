@@ -26,10 +26,11 @@ import { COLORS } from './src/config/theme';
 export default function App() {
   // Load DM Sans — a clean geometric sans-serif very similar to Google Sans.
   // The font keys here must match the FONTS constants in theme.js.
+  // Inside App.js
   const [fontsLoaded] = useFonts({
-    'GoogleSans-Regular': DMSans_400Regular,
-    'GoogleSans-Medium': DMSans_500Medium,
-    'GoogleSans-Bold': DMSans_700Bold,
+    'GoogleSans-Regular': require('./src/assets/fonts/GoogleSans-Regular.ttf'),
+    'GoogleSans-Medium': require('./src/assets/fonts/GoogleSans-Medium.ttf'),
+    'GoogleSans-Bold': require('./src/assets/fonts/GoogleSans-Bold.ttf'),
   });
 
   // While fonts are loading, show a simple centered spinner.
