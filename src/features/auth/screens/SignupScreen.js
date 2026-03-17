@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { isValidEmail } from '../../../utils/helpers';
+import { useFavorites } from '../../favorites/context/FavoritesContext';
 
 const M3_COLORS = {
   background: '#FFFFFF',
@@ -51,6 +52,7 @@ const SignupScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
+  const { loadUserFavorites } = useFavorites(); // Added Context Hook
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -86,8 +88,15 @@ const SignupScreen = ({ navigation }) => {
         users[normalizedEmail] = { name: name.trim(), password };
         await AsyncStorage.setItem('users_db', JSON.stringify(users));
         
-        // Auto-login
+        // Establish the 2-hour session exactly as we do during login
+        const expiry = Date.now() + 2 * 60 * 60 * 1000;
+        await AsyncStorage.setItem('session', JSON.stringify({ user: normalizedEmail, expiry }));
         await AsyncStorage.setItem('currentUser', normalizedEmail);
+
+        // Prime the favorites context for the new user
+        await loadUserFavorites(normalizedEmail);
+
+        // Navigate
         navigation.replace('Main');
       } catch (error) {
         console.error('Failed to save user data:', error);
