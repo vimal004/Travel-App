@@ -8,10 +8,14 @@ import {
   TouchableOpacity,
   Text,
   TextInput,
-  ScrollView
+  ScrollView,
+  Modal,
+  Platform,
+  TouchableWithoutFeedback
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import DestinationCard from '../components/DestinationCard';
 import { fetchDestinations } from '../services/destinationApi';
 
@@ -22,6 +26,7 @@ const M3_COLORS = {
   onPrimary: '#FFFFFF',
   textPrimary: '#1F1F1F',
   textSecondary: '#444746',
+  error: '#B3261E',
 };
 
 const CATEGORIES = ['All', 'Beaches', 'Mountains', 'Culture', 'Cities'];
@@ -33,6 +38,10 @@ const FeedScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Profile specific state
+  const [userProfile, setUserProfile] = useState({ name: '', email: '' });
+  const [isProfileMenuVisible, setProfileMenuVisible] = useState(false);
 
   const loadData = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
@@ -50,6 +59,29 @@ const FeedScreen = ({ navigation }) => {
     loadData();
   }, [loadData]);
 
+  // Fetch logged-in user details
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const email = await AsyncStorage.getItem('currentUser');
+        if (email) {
+          const usersStr = await AsyncStorage.getItem('users_db');
+          if (usersStr) {
+            const users = JSON.parse(usersStr);
+            if (users[email]) {
+              setUserProfile({ name: users[email].name, email: email });
+            } else {
+              setUserProfile({ name: 'Traveler', email: email });
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user profile", error);
+      }
+    };
+    fetchUserProfile();
+  }, []);
+
   // Handle Filtering
   useEffect(() => {
     let result = destinations;
@@ -65,6 +97,19 @@ const FeedScreen = ({ navigation }) => {
     setFilteredData(result);
   }, [activeCategory, searchQuery, destinations]);
 
+  const handleLogout = async () => {
+    setProfileMenuVisible(false);
+    try {
+      // Clear session data
+      await AsyncStorage.removeItem('session');
+      await AsyncStorage.removeItem('currentUser');
+      // Navigate to Auth flow
+      navigation.replace('Welcome');
+    } catch (error) {
+      console.error('Logout Error:', error);
+    }
+  };
+
   if (loading && !refreshing) {
     return (
       <View style={styles.loadingContainer}>
@@ -79,13 +124,42 @@ const FeedScreen = ({ navigation }) => {
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.greeting}>Good morning,</Text>
+          <Text style={styles.greeting}>Good morning{userProfile.name ? `, ${userProfile.name.split(' ')[0]}` : ','}</Text>
           <Text style={styles.title}>Where to next?</Text>
         </View>
-        <View style={styles.avatar}>
+        <TouchableOpacity 
+          style={styles.avatar} 
+          onPress={() => setProfileMenuVisible(true)}
+        >
           <Ionicons name="person" size={20} color={M3_COLORS.primary} />
-        </View>
+        </TouchableOpacity>
       </View>
+
+      {/* Profile Dropdown Menu */}
+      <Modal
+        visible={isProfileMenuVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setProfileMenuVisible(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1} 
+          onPressOut={() => setProfileMenuVisible(false)}
+        >
+          <TouchableWithoutFeedback>
+            <View style={styles.profileMenu}>
+              <Text style={styles.profileName}>{userProfile.name || 'User'}</Text>
+              <Text style={styles.profileEmail}>{userProfile.email}</Text>
+              <View style={styles.menuDivider} />
+              <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                <Ionicons name="log-out-outline" size={20} color={M3_COLORS.error} />
+                <Text style={styles.logoutText}>Logout</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableWithoutFeedback>
+        </TouchableOpacity>
+      </Modal>
 
       {/* M3 Search Bar */}
       <View style={styles.searchContainer}>
@@ -178,6 +252,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 16,
     paddingBottom: 24,
+    zIndex: 1, // Ensure header is above search
   },
   greeting: {
     fontFamily: 'GoogleSans-Medium',
@@ -198,6 +273,52 @@ const styles = StyleSheet.create({
     backgroundColor: M3_COLORS.surfaceVariant,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.1)', // subtle dimming
+  },
+  profileMenu: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 100 : 70, // Adjust drop-down location
+    right: 24,
+    backgroundColor: M3_COLORS.background,
+    borderRadius: 16,
+    padding: 20,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    minWidth: 220,
+  },
+  profileName: {
+    fontFamily: 'GoogleSans-Bold',
+    fontSize: 18,
+    color: M3_COLORS.textPrimary,
+    marginBottom: 4,
+  },
+  profileEmail: {
+    fontFamily: 'GoogleSans-Regular',
+    fontSize: 14,
+    color: M3_COLORS.textSecondary,
+    marginBottom: 16,
+  },
+  menuDivider: {
+    height: 1,
+    backgroundColor: M3_COLORS.surfaceVariant,
+    marginBottom: 16,
+  },
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  logoutText: {
+    fontFamily: 'GoogleSans-Medium',
+    fontSize: 16,
+    color: M3_COLORS.error,
+    marginLeft: 12,
   },
   searchContainer: {
     flexDirection: 'row',
