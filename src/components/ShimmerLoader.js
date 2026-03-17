@@ -6,18 +6,40 @@ const { width } = Dimensions.get('window');
 
 const ShimmerLoader = ({ style }) => {
   const shimmerAnim = useRef(new Animated.Value(-1)).current;
+  const pulseAnim = useRef(new Animated.Value(0.6)).current;
 
   useEffect(() => {
-    const animation = Animated.loop(
+    const translateAnimation = Animated.loop(
       Animated.timing(shimmerAnim, {
         toValue: 1,
-        duration: 1500,
+        duration: 1200,
         useNativeDriver: true,
       })
     );
-    animation.start();
-    return () => animation.stop();
-  }, [shimmerAnim]);
+    
+    const pulseAnimation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 0.6,
+          duration: 600,
+          useNativeDriver: true,
+        })
+      ])
+    );
+
+    translateAnimation.start();
+    pulseAnimation.start();
+    
+    return () => {
+      translateAnimation.stop();
+      pulseAnimation.stop();
+    };
+  }, [shimmerAnim, pulseAnim]);
 
   const translateX = shimmerAnim.interpolate({
     inputRange: [-1, 1],
@@ -30,12 +52,13 @@ const ShimmerLoader = ({ style }) => {
         style={[
           StyleSheet.absoluteFill,
           {
+            opacity: pulseAnim,
             transform: [{ translateX }],
           },
         ]}
       >
         <LinearGradient
-          colors={['#E1E9EE', '#F2F8FC', '#E1E9EE']}
+          colors={['transparent', 'rgba(255,255,255,0.7)', 'transparent']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={StyleSheet.absoluteFill}
@@ -47,7 +70,7 @@ const ShimmerLoader = ({ style }) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#E1E9EE',
+    backgroundColor: '#E6EAEF', // Soft premium base color
     overflow: 'hidden',
   },
 });

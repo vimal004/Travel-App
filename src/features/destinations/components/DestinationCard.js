@@ -24,7 +24,18 @@ const DestinationCard = ({ item, onPress }) => {
   const { isFavorite, toggleFavorite } = useFavorites();
   const [isLoaded, setIsLoaded] = React.useState(false);
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const imageOpacity = useRef(new Animated.Value(0)).current;
   const liked = isFavorite(item.id);
+
+  const handleImageLoad = () => {
+    Animated.timing(imageOpacity, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start(() => {
+      setIsLoaded(true);
+    });
+  };
 
   const onPressIn = () => {
     Animated.spring(scaleAnim, { toValue: 0.96, useNativeDriver: true }).start();
@@ -42,14 +53,14 @@ const DestinationCard = ({ item, onPress }) => {
         onPressOut={onPressOut}
         style={styles.card}
       >
-        <Image
-          source={{ uri: item.image }}
-          style={styles.image}
-          resizeMode="cover"
-          onLoad={() => setIsLoaded(true)}
-        />
-        
         {!isLoaded && <ShimmerLoader style={StyleSheet.absoluteFill} />}
+
+        <Animated.Image
+          source={{ uri: item.image }}
+          style={[styles.image, { opacity: imageOpacity }]}
+          resizeMode="cover"
+          onLoad={handleImageLoad}
+        />
         
         {/* Dark gradient overlay for text readability */}
         <LinearGradient
