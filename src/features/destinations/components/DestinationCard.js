@@ -1,9 +1,3 @@
-/**
- * DestinationCard.js — A polished card shown in the destination feed.
- * Displays a cover image, title, country, and a favourite heart toggle.
- * Uses subtle shadows, rounded corners, and a press animation.
- */
-
 import React, { useRef } from 'react';
 import {
   View,
@@ -11,33 +5,30 @@ import {
   Image,
   StyleSheet,
   Animated,
+  Text
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Typography from '../../../components/Typography';
-import { COLORS, SIZES, SHADOWS, FONTS } from '../../../config/theme';
-import { truncateText } from '../../../utils/helpers';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useFavorites } from '../../favorites/context/FavoritesContext';
+
+const M3_COLORS = {
+  primary: '#0A56D1',
+  surfaceVariant: '#F1F3F4',
+  textPrimary: '#1F1F1F',
+  white: '#FFFFFF',
+  star: '#FFBA28'
+};
 
 const DestinationCard = ({ item, onPress }) => {
   const { isFavorite, toggleFavorite } = useFavorites();
   const scaleAnim = useRef(new Animated.Value(1)).current;
-  const heartScale = useRef(new Animated.Value(1)).current;
   const liked = isFavorite(item.id);
 
   const onPressIn = () => {
-    Animated.spring(scaleAnim, { toValue: 0.97, useNativeDriver: true }).start();
+    Animated.spring(scaleAnim, { toValue: 0.96, useNativeDriver: true }).start();
   };
   const onPressOut = () => {
-    Animated.spring(scaleAnim, { toValue: 1, friction: 3, useNativeDriver: true }).start();
-  };
-
-  const handleHeart = () => {
-    // Quick "pop" animation on the heart icon
-    Animated.sequence([
-      Animated.spring(heartScale, { toValue: 1.4, useNativeDriver: true }),
-      Animated.spring(heartScale, { toValue: 1, friction: 3, useNativeDriver: true }),
-    ]).start();
-    toggleFavorite(item);
+    Animated.spring(scaleAnim, { toValue: 1, friction: 4, useNativeDriver: true }).start();
   };
 
   return (
@@ -47,47 +38,48 @@ const DestinationCard = ({ item, onPress }) => {
         onPress={onPress}
         onPressIn={onPressIn}
         onPressOut={onPressOut}
-        style={[styles.card, SHADOWS.card]}
+        style={styles.card}
       >
-        {/* Cover Image */}
         <Image
           source={{ uri: item.image }}
           style={styles.image}
           resizeMode="cover"
         />
+        
+        {/* Dark gradient overlay for text readability */}
+        <LinearGradient
+          colors={['transparent', 'rgba(0,0,0,0.8)']}
+          style={styles.gradient}
+        />
 
-        {/* Heart overlay */}
-        <Animated.View style={[styles.heartBtn, { transform: [{ scale: heartScale }] }]}>
-          <TouchableOpacity onPress={handleHeart} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <Ionicons
-              name={liked ? 'heart' : 'heart-outline'}
-              size={22}
-              color={liked ? COLORS.heart : COLORS.white}
-            />
-          </TouchableOpacity>
-        </Animated.View>
+        {/* Favorite FAB */}
+        <TouchableOpacity 
+          style={styles.fab} 
+          onPress={() => toggleFavorite(item)}
+          activeOpacity={0.7}
+        >
+          <Ionicons
+            name={liked ? 'heart' : 'heart-outline'}
+            size={22}
+            color={liked ? '#B3261E' : M3_COLORS.textPrimary}
+          />
+        </TouchableOpacity>
 
-        {/* Info bar */}
-        <View style={styles.info}>
-          <View style={styles.infoLeft}>
-            <Typography variant="subtitle" numberOfLines={1} style={styles.title}>
-              {item.name}
-            </Typography>
-            <View style={styles.locationRow}>
-              <Ionicons name="location-sharp" size={14} color={COLORS.accent} />
-              <Typography variant="caption" style={styles.country}>
-                {item.country || 'Unknown'}
-              </Typography>
+        {/* Content */}
+        <View style={styles.content}>
+          <View style={styles.contentHeader}>
+            <View>
+              <Text style={styles.title}>{item.name}</Text>
+              <View style={styles.locationRow}>
+                <Ionicons name="location" size={14} color={M3_COLORS.white} />
+                <Text style={styles.locationText}>{item.country}</Text>
+              </View>
+            </View>
+            <View style={styles.ratingPill}>
+              <Ionicons name="star" size={14} color={M3_COLORS.star} />
+              <Text style={styles.ratingText}>{item.rating}</Text>
             </View>
           </View>
-          {item.rating != null && (
-            <View style={styles.ratingBadge}>
-              <Ionicons name="star" size={13} color={COLORS.star} />
-              <Typography variant="caption" style={styles.ratingText}>
-                {Number(item.rating).toFixed(1)}
-              </Typography>
-            </View>
-          )}
         </View>
       </TouchableOpacity>
     </Animated.View>
@@ -96,62 +88,85 @@ const DestinationCard = ({ item, onPress }) => {
 
 const styles = StyleSheet.create({
   wrapper: {
-    marginBottom: SIZES.md,
+    marginBottom: 24,
   },
   card: {
-    backgroundColor: COLORS.surface,
-    borderRadius: SIZES.radiusLg,
+    height: 320,
+    backgroundColor: M3_COLORS.surfaceVariant,
+    borderRadius: 28, // Expressive MD3 large rounded corners
     overflow: 'hidden',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
   },
   image: {
     width: '100%',
-    height: 180,
-  },
-  heartBtn: {
+    height: '100%',
     position: 'absolute',
-    top: 12,
-    right: 12,
-    backgroundColor: 'rgba(0,0,0,0.35)',
-    borderRadius: SIZES.radiusFull,
-    padding: 8,
   },
-  info: {
-    paddingHorizontal: SIZES.md,
-    paddingVertical: 14,
+  gradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 160,
+  },
+  fab: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    backgroundColor: M3_COLORS.white,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 4,
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    padding: 20,
+  },
+  contentHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  infoLeft: {
-    flex: 1,
-    marginRight: SIZES.sm,
+    alignItems: 'flex-end',
   },
   title: {
-    fontSize: 16,
-    marginBottom: 3,
+    fontFamily: 'GoogleSans-Bold',
+    fontSize: 28,
+    color: M3_COLORS.white,
+    marginBottom: 4,
+    letterSpacing: -0.5,
   },
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
+    opacity: 0.9,
   },
-  country: {
-    fontSize: 12,
-    color: COLORS.secondaryText,
+  locationText: {
+    fontFamily: 'GoogleSans-Medium',
+    fontSize: 15,
+    color: M3_COLORS.white,
+    marginLeft: 4,
   },
-  ratingBadge: {
+  ratingPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEF9C3',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: SIZES.radiusFull,
-    gap: 3,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 100,
+    backdropFilter: 'blur(10px)', // web only, but safe to leave
   },
   ratingText: {
-    fontSize: 12,
-    fontFamily: FONTS.medium,
-    color: '#92400E',
+    fontFamily: 'GoogleSans-Bold',
+    fontSize: 14,
+    color: M3_COLORS.white,
+    marginLeft: 4,
   },
 });
 
