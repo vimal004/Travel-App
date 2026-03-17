@@ -1,214 +1,123 @@
-/**
- * DetailScreen.js — Full destination detail view.
- *
- * Uses react-native-reanimated for entrance animations:
- *  • Hero image scales from 1.1 → 1 on mount (zoom-settle effect)
- *  • Info card slides up from below and fades in
- *  • FAB pops in with spring physics
- *
- * A FloatingActionButton lets the user toggle the item as a favourite.
- */
-
 import React from 'react';
-import {
-  View,
-  Image,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Dimensions,
-} from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withSpring,
-  withDelay,
-  Easing,
-} from 'react-native-reanimated';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Text } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring, withDelay, Easing } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import Typography from '../../../components/Typography';
-import { COLORS, SIZES, SHADOWS, FONTS } from '../../../config/theme';
 import { useFavorites } from '../../favorites/context/FavoritesContext';
-import { formatCurrency } from '../../../utils/helpers';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const M3_COLORS = {
+  background: '#FFFFFF',
+  surfaceVariant: '#F1F3F4',
+  primary: '#0A56D1',
+  primaryContainer: '#D3E3FD',
+  textPrimary: '#1F1F1F',
+  textSecondary: '#444746',
+  white: '#FFFFFF',
+};
+
+// Reusable component for the data grid to keep code clean
+const QuickFact = ({ icon, title, value }) => (
+  <View style={styles.quickFactContainer}>
+    <View style={styles.iconBox}>
+      <Ionicons name={icon} size={20} color={M3_COLORS.primary} />
+    </View>
+    <View style={styles.quickFactText}>
+      <Text style={styles.quickFactTitle}>{title}</Text>
+      <Text style={styles.quickFactValue} numberOfLines={1}>{value}</Text>
+    </View>
+  </View>
+);
 
 const DetailScreen = ({ route, navigation }) => {
   const { destination } = route.params;
   const { isFavorite, toggleFavorite } = useFavorites();
   const liked = isFavorite(destination.id);
 
-  // ─── Reanimated shared values ───
-  // Hero image starts slightly zoomed and settles to normal
   const heroScale = useSharedValue(1.1);
-  // Info card starts below and transparent, slides into place
   const infoTranslateY = useSharedValue(60);
-  const infoOpacity = useSharedValue(0);
-  // FAB starts at scale 0 and springs in
   const fabScale = useSharedValue(0);
 
   React.useEffect(() => {
-    // Hero zoom-settle (500ms ease-out)
-    heroScale.value = withTiming(1, { duration: 500, easing: Easing.out(Easing.cubic) });
-    // Info card slide-up with a slight delay (300ms delay, 500ms duration)
-    infoTranslateY.value = withDelay(200, withTiming(0, { duration: 500, easing: Easing.out(Easing.cubic) }));
-    infoOpacity.value = withDelay(200, withTiming(1, { duration: 500 }));
-    // FAB pops in after the card settles (500ms delay, spring physics)
-    fabScale.value = withDelay(500, withSpring(1, { damping: 12, stiffness: 150 }));
+    heroScale.value = withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) });
+    infoTranslateY.value = withTiming(0, { duration: 600, easing: Easing.out(Easing.cubic) });
+    fabScale.value = withDelay(400, withSpring(1, { damping: 12, stiffness: 150 }));
   }, []);
-
-  // ─── Animated styles ───
-  const heroAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: heroScale.value }],
-  }));
-
-  const infoAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: infoTranslateY.value }],
-    opacity: infoOpacity.value,
-  }));
-
-  const fabAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: fabScale.value }],
-  }));
 
   return (
     <View style={styles.root}>
       <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
-        {/* Hero Image with zoom-settle animation */}
+        
         <View style={styles.heroContainer}>
-          <Animated.Image
-            source={{ uri: destination.image }}
-            style={[styles.heroImage, heroAnimatedStyle]}
-            resizeMode="cover"
+          <Animated.Image 
+            source={{ uri: destination.image }} 
+            style={[styles.heroImage, { transform: [{ scale: heroScale }] }]} 
           />
-          {/* Overlay gradient for readability */}
-          <View style={styles.heroOverlay} />
-
-          {/* Back button */}
-          <TouchableOpacity
-            style={styles.backBtn}
-            onPress={() => navigation.goBack()}
-          >
-            <Ionicons name="chevron-back" size={24} color={COLORS.white} />
+          <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color={M3_COLORS.white} />
           </TouchableOpacity>
         </View>
 
-        {/* Info section slides up */}
-        <Animated.View style={[styles.infoCard, SHADOWS.card, infoAnimatedStyle]}>
-          {/* Title row */}
-          <View style={styles.titleRow}>
-            <Typography variant="heading" style={styles.name}>
-              {destination.name}
-            </Typography>
-            {destination.rating != null && (
-              <View style={styles.ratingBadge}>
-                <Ionicons name="star" size={14} color={COLORS.star} />
-                <Typography variant="caption" style={styles.ratingText}>
-                  {Number(destination.rating).toFixed(1)}
-                </Typography>
-              </View>
-            )}
-          </View>
-
-          {/* Location */}
+        <Animated.View style={[styles.infoCard, { transform: [{ translateY: infoTranslateY }] }]}>
+          <View style={styles.dragHandle} />
+          
+          <Text style={styles.title}>{destination.name}</Text>
+          
           <View style={styles.locationRow}>
-            <Ionicons name="location-sharp" size={16} color={COLORS.accent} />
-            <Typography variant="body" style={styles.locationText}>
-              {destination.country || 'Unknown location'}
-            </Typography>
+            <Ionicons name="location-sharp" size={16} color={M3_COLORS.primary} />
+            <Text style={styles.locationText}>{destination.country}</Text>
           </View>
 
-          {/* Chips row */}
-          <View style={styles.chipsRow}>
-            {destination.climate && (
-              <View style={styles.chip}>
-                <Ionicons name="partly-sunny-outline" size={14} color={COLORS.accent} />
-                <Typography variant="caption" style={styles.chipText}>
-                  {destination.climate}
-                </Typography>
-              </View>
-            )}
-            {destination.currency && (
-              <View style={styles.chip}>
-                <Ionicons name="cash-outline" size={14} color={COLORS.accent} />
-                <Typography variant="caption" style={styles.chipText}>
-                  {destination.currency}
-                </Typography>
-              </View>
-            )}
-            {destination.language && (
-              <View style={styles.chip}>
-                <Ionicons name="globe-outline" size={14} color={COLORS.accent} />
-                <Typography variant="caption" style={styles.chipText}>
-                  {destination.language}
-                </Typography>
-              </View>
-            )}
+          <View style={styles.chipRow}>
+             <View style={styles.ratingChip}>
+                <Ionicons name="star" size={14} color="#F5B400" />
+                <Text style={styles.ratingText}>{destination.rating}</Text>
+             </View>
+             {/* Using climate as the secondary chip to replace the missing 'category' */}
+             <View style={styles.chip}>
+                <Text style={styles.chipText}>{destination.climate}</Text>
+             </View>
           </View>
 
-          {/* Price */}
-          {destination.cost_of_living && (
-            <View style={styles.priceRow}>
-              <Typography variant="caption" style={styles.priceLabel}>Avg. Cost of Living</Typography>
-              <Typography variant="title" style={styles.priceValue}>
-                {destination.cost_of_living}
-              </Typography>
+          <Text style={styles.sectionTitle}>About</Text>
+          <Text style={styles.description}>
+            {destination.description}
+          </Text>
+
+          {/* New Quick Facts Grid */}
+          <View style={styles.gridContainer}>
+            <QuickFact icon="cash-outline" title="Cost" value={destination.cost_of_living} />
+            <QuickFact icon="language-outline" title="Language" value={destination.language} />
+            <QuickFact icon="partly-sunny-outline" title="Climate" value={destination.climate} />
+            <QuickFact icon="wallet-outline" title="Currency" value={destination.currency} />
+          </View>
+
+          {/* Best Time to Visit Highlight Card */}
+          <View style={styles.highlightCard}>
+            <Ionicons name="calendar-outline" size={24} color={M3_COLORS.primary} style={{ marginRight: 12 }} />
+            <View>
+              <Text style={styles.highlightTitle}>Best Time to Visit</Text>
+              <Text style={styles.highlightText}>{destination.best_time_to_visit}</Text>
             </View>
-          )}
+          </View>
 
-          {/* Description */}
-          <Typography variant="subtitle" style={styles.sectionTitle}>
-            About
-          </Typography>
-          <Typography variant="body" style={styles.description}>
-            {destination.description || 'No description available for this destination.'}
-          </Typography>
-
-          {/* Popular for */}
-          {destination.popular_for && destination.popular_for.length > 0 && (
-            <>
-              <Typography variant="subtitle" style={styles.sectionTitle}>
-                Popular For
-              </Typography>
-              <View style={styles.tagsRow}>
-                {destination.popular_for.map((tag, i) => (
-                  <View key={i} style={styles.tag}>
-                    <Typography variant="caption" style={styles.tagText}>
-                      {tag}
-                    </Typography>
-                  </View>
-                ))}
+          {/* Popular For Tags */}
+          <Text style={styles.sectionTitle}>Popular For</Text>
+          <View style={styles.tagsContainer}>
+            {destination.popular_for.map((item, index) => (
+              <View key={index} style={styles.tagPill}>
+                <Text style={styles.tagText}>{item}</Text>
               </View>
-            </>
-          )}
+            ))}
+          </View>
 
-          {/* Best time to visit */}
-          {destination.best_time_to_visit && (
-            <View style={styles.bestTimeRow}>
-              <Ionicons name="calendar-outline" size={18} color={COLORS.accent} />
-              <View style={styles.bestTimeTextWrap}>
-                <Typography variant="caption" style={styles.bestTimeLabel}>Best Time to Visit</Typography>
-                <Typography variant="body" style={styles.bestTimeValue}>
-                  {destination.best_time_to_visit}
-                </Typography>
-              </View>
-            </View>
-          )}
-
-          {/* Extra bottom spacing for FAB clearance */}
-          <View style={{ height: 80 }} />
+          {/* Bottom padding so content doesn't get hidden behind the FAB */}
+          <View style={{ height: 120 }} />
         </Animated.View>
       </ScrollView>
 
-      {/* Floating Action Button — Favourite toggle (springs in) */}
-      <Animated.View style={[styles.fab, SHADOWS.button, fabAnimatedStyle]}>
+      <Animated.View style={[styles.fab, { transform: [{ scale: fabScale }] }]}>
         <TouchableOpacity onPress={() => toggleFavorite(destination)} style={styles.fabInner}>
-          <Ionicons
-            name={liked ? 'heart' : 'heart-outline'}
-            size={26}
-            color={COLORS.white}
-          />
+          <Ionicons name={liked ? 'heart' : 'heart-outline'} size={28} color={M3_COLORS.white} />
         </TouchableOpacity>
       </Animated.View>
     </View>
@@ -216,171 +125,45 @@ const DetailScreen = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  heroContainer: {
-    width: SCREEN_WIDTH,
-    height: 320,
-    overflow: 'hidden',
-  },
-  heroImage: {
-    width: '100%',
-    height: '100%',
-  },
-  heroOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.15)',
-  },
-  backBtn: {
-    position: 'absolute',
-    top: 50,
-    left: 16,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.35)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  infoCard: {
-    backgroundColor: COLORS.surface,
-    borderTopLeftRadius: SIZES.radiusXl,
-    borderTopRightRadius: SIZES.radiusXl,
-    marginTop: -28,
-    paddingHorizontal: SIZES.lg,
-    paddingTop: 28,
-    minHeight: 400,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 6,
-  },
-  name: {
-    flex: 1,
-    marginRight: 12,
-  },
-  ratingBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FEF9C3',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: SIZES.radiusFull,
-    gap: 4,
-  },
-  ratingText: {
-    fontSize: 13,
-    fontFamily: FONTS.medium,
-    color: '#92400E',
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginBottom: 16,
-  },
-  locationText: {
-    color: COLORS.secondaryText,
-  },
-  chipsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 20,
-  },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: '#EFF6FF',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: SIZES.radiusFull,
-  },
-  chipText: {
-    color: COLORS.accent,
-    fontFamily: FONTS.medium,
-    fontSize: 12,
-  },
-  priceRow: {
-    backgroundColor: '#F0FDF4',
-    borderRadius: SIZES.radiusMd,
-    padding: 16,
-    marginBottom: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  priceLabel: {
-    color: COLORS.secondaryText,
-  },
-  priceValue: {
-    color: '#16A34A',
-    fontFamily: FONTS.bold,
-  },
-  sectionTitle: {
-    marginBottom: 8,
-  },
-  description: {
-    color: COLORS.secondaryText,
-    lineHeight: 22,
-    marginBottom: 20,
-  },
-  tagsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 20,
-  },
-  tag: {
-    backgroundColor: '#F3F4F6',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: SIZES.radiusFull,
-  },
-  tagText: {
-    fontFamily: FONTS.medium,
-    color: COLORS.primaryText,
-    fontSize: 12,
-  },
-  bestTimeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    backgroundColor: '#EFF6FF',
-    borderRadius: SIZES.radiusMd,
-    padding: 16,
-    marginBottom: 20,
-  },
-  bestTimeTextWrap: {},
-  bestTimeLabel: {
-    color: COLORS.secondaryText,
-    fontSize: 11,
-    marginBottom: 2,
-  },
-  bestTimeValue: {
-    color: COLORS.primaryText,
-    fontFamily: FONTS.medium,
-  },
-  fab: {
-    position: 'absolute',
-    bottom: 32,
-    right: 24,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: COLORS.accent,
-    overflow: 'hidden',
-  },
-  fabInner: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  root: { flex: 1, backgroundColor: M3_COLORS.background },
+  heroContainer: { width: SCREEN_WIDTH, height: 400, overflow: 'hidden' },
+  heroImage: { width: '100%', height: '100%' },
+  backBtn: { position: 'absolute', top: 50, left: 20, width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center' },
+  infoCard: { backgroundColor: M3_COLORS.background, borderTopLeftRadius: 32, borderTopRightRadius: 32, marginTop: -40, paddingHorizontal: 24, paddingTop: 16, minHeight: 500 },
+  dragHandle: { width: 40, height: 4, backgroundColor: '#E0E0E0', borderRadius: 2, alignSelf: 'center', marginBottom: 24 },
+  title: { fontFamily: 'GoogleSans-Bold', fontSize: 32, color: M3_COLORS.textPrimary, marginBottom: 8, letterSpacing: -0.5 },
+  locationRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
+  locationText: { fontFamily: 'GoogleSans-Medium', fontSize: 16, color: M3_COLORS.textSecondary, marginLeft: 6 },
+  
+  chipRow: { flexDirection: 'row', gap: 12, marginBottom: 24 },
+  chip: { backgroundColor: M3_COLORS.surfaceVariant, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 100 },
+  chipText: { fontFamily: 'GoogleSans-Medium', fontSize: 14, color: M3_COLORS.textPrimary },
+  ratingChip: { backgroundColor: M3_COLORS.primaryContainer, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 100, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  ratingText: { fontFamily: 'GoogleSans-Bold', fontSize: 14, color: M3_COLORS.primary },
+  
+  sectionTitle: { fontFamily: 'GoogleSans-Bold', fontSize: 20, color: M3_COLORS.textPrimary, marginBottom: 12, marginTop: 8 },
+  description: { fontFamily: 'GoogleSans-Regular', fontSize: 16, color: M3_COLORS.textSecondary, lineHeight: 26, marginBottom: 24 },
+  
+  // Grid Styles
+  gridContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 24 },
+  quickFactContainer: { width: '48%', flexDirection: 'row', alignItems: 'center', marginBottom: 16, backgroundColor: M3_COLORS.surfaceVariant, padding: 12, borderRadius: 16 },
+  iconBox: { width: 36, height: 36, borderRadius: 18, backgroundColor: M3_COLORS.white, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  quickFactText: { flex: 1 },
+  quickFactTitle: { fontFamily: 'GoogleSans-Medium', fontSize: 12, color: M3_COLORS.textSecondary, marginBottom: 2 },
+  quickFactValue: { fontFamily: 'GoogleSans-Bold', fontSize: 14, color: M3_COLORS.textPrimary },
+
+  // Highlight Card
+  highlightCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: M3_COLORS.primaryContainer, padding: 16, borderRadius: 16, marginBottom: 32 },
+  highlightTitle: { fontFamily: 'GoogleSans-Medium', fontSize: 13, color: M3_COLORS.primary, marginBottom: 2 },
+  highlightText: { fontFamily: 'GoogleSans-Bold', fontSize: 15, color: M3_COLORS.textPrimary },
+
+  // Tags
+  tagsContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  tagPill: { borderWidth: 1, borderColor: '#E0E0E0', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 100 },
+  tagText: { fontFamily: 'GoogleSans-Medium', fontSize: 14, color: M3_COLORS.textSecondary },
+
+  fab: { position: 'absolute', bottom: 32, right: 24, width: 64, height: 64, borderRadius: 16, backgroundColor: M3_COLORS.primary, elevation: 6 },
+  fabInner: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 });
 
 export default DetailScreen;
