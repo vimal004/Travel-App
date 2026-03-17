@@ -94,10 +94,10 @@ const styles = StyleSheet.create({
   },
   iconWrapper: {
     shadowColor: M3_COLORS.primary,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.2,
-    shadowRadius: 15,
-    elevation: 10,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
   },
   iconCircle: {
     width: 140,
