@@ -3,6 +3,7 @@ import { View, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Text } from
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring, withDelay, Easing } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useFavorites } from '../../favorites/context/FavoritesContext';
+import ShimmerLoader from '../../../components/ShimmerLoader';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const M3_COLORS = {
@@ -31,6 +32,7 @@ const QuickFact = ({ icon, title, value }) => (
 const DetailScreen = ({ route, navigation }) => {
   const { destination } = route.params;
   const { isFavorite, toggleFavorite } = useFavorites();
+  const [isLoaded, setIsLoaded] = React.useState(false);
   const liked = isFavorite(destination.id);
 
   const heroScale = useSharedValue(1.1);
@@ -51,7 +53,9 @@ const DetailScreen = ({ route, navigation }) => {
           <Animated.Image 
             source={{ uri: destination.image }} 
             style={[styles.heroImage, { transform: [{ scale: heroScale }] }]} 
+            onLoad={() => setIsLoaded(true)}
           />
+          {!isLoaded && <ShimmerLoader style={StyleSheet.absoluteFill} />}
           <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={24} color={M3_COLORS.white} />
           </TouchableOpacity>

@@ -10,6 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFavorites } from '../../favorites/context/FavoritesContext';
+import ShimmerLoader from '../../../components/ShimmerLoader';
 
 const M3_COLORS = {
   primary: '#0A56D1',
@@ -21,6 +22,7 @@ const M3_COLORS = {
 
 const DestinationCard = ({ item, onPress }) => {
   const { isFavorite, toggleFavorite } = useFavorites();
+  const [isLoaded, setIsLoaded] = React.useState(false);
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const liked = isFavorite(item.id);
 
@@ -44,7 +46,10 @@ const DestinationCard = ({ item, onPress }) => {
           source={{ uri: item.image }}
           style={styles.image}
           resizeMode="cover"
+          onLoad={() => setIsLoaded(true)}
         />
+        
+        {!isLoaded && <ShimmerLoader style={StyleSheet.absoluteFill} />}
         
         {/* Dark gradient overlay for text readability */}
         <LinearGradient
