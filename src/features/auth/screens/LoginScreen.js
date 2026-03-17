@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { isValidEmail } from '../../../utils/helpers';
+import { useFavorites } from '../../favorites/context/FavoritesContext';
 
 const M3_COLORS = {
   background: '#FFFFFF',
@@ -50,6 +51,7 @@ const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
+  const { loadUserFavorites } = useFavorites(); // Pull in context action
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -84,8 +86,15 @@ const LoginScreen = ({ navigation }) => {
           return;
         }
 
-        // Login successful
+        // Establish a session that lasts for 2 hours (in milliseconds)
+        const expiry = Date.now() + 2 * 60 * 60 * 1000;
+        await AsyncStorage.setItem('session', JSON.stringify({ user: normalizedEmail, expiry }));
         await AsyncStorage.setItem('currentUser', normalizedEmail);
+
+        // Load the specific favorites attached to this logged-in account
+        await loadUserFavorites(normalizedEmail);
+
+        // Login successful
         navigation.replace('Main');
       } catch (error) {
         console.error('Login Error:', error);

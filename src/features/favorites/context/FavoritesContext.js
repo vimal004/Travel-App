@@ -1,42 +1,75 @@
 /**
  * FavoritesContext.js — Global state for favorite destinations.
- * Uses React Context + useReducer so any screen can read or
- * mutate favorites without prop-drilling.
+ * Synced with AsyncStorage tied to individual user accounts to ensure
+ * preferences persist across app reloads and login sessions.
  */
 
-import React, { createContext, useContext, useReducer, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const FavoritesContext = createContext();
 
-// ── action types ──
-const ADD_FAVORITE = 'ADD_FAVORITE';
-const REMOVE_FAVORITE = 'REMOVE_FAVORITE';
-
-// ── reducer ──
-const favoritesReducer = (state, action) => {
-  switch (action.type) {
-    case ADD_FAVORITE:
-      // Prevent duplicates
-      if (state.some((item) => item.id === action.payload.id)) return state;
-      return [...state, action.payload];
-    case REMOVE_FAVORITE:
-      return state.filter((item) => item.id !== action.payload);
-    default:
-      return state;
-  }
-};
-
-// ── Provider component ──
 export const FavoritesProvider = ({ children }) => {
-  const [favorites, dispatch] = useReducer(favoritesReducer, []);
+  const [favorites, setFavorites] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  // Auto-load favorites if a session is valid on app boot
+  useEffect(() => {
+    const loadInitialData = async () => {
+      try {
+        const sessionStr = await AsyncStorage.getItem('session');
+        if (sessionStr) {
+          const session = JSON.parse(sessionStr);
+          if (Date.now() < session.expiry) {
+            setCurrentUser(session.user);
+            const storedFavs = await AsyncStorage.getItem(`favorites_${session.user}`);
+            if (storedFavs) {
+              setFavorites(JSON.parse(storedFavs));
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Error loading initial favorites:', e);
+      }
+    };
+    loadInitialData();
+  }, []);
+
+  // Called explicitly during login
+  const loadUserFavorites = async (email) => {
+    setCurrentUser(email);
+    try {
+      const storedFavs = await AsyncStorage.getItem(`favorites_${email}`);
+      if (storedFavs) {
+        setFavorites(JSON.parse(storedFavs));
+      } else {
+        setFavorites([]); // Clear any leftover state
+      }
+    } catch (e) {
+      console.error('Error loading user favorites:', e);
+    }
+  };
 
   const addFavorite = useCallback((destination) => {
-    dispatch({ type: ADD_FAVORITE, payload: destination });
-  }, []);
+    setFavorites((prev) => {
+      if (prev.some((item) => item.id === destination.id)) return prev;
+      const updated = [...prev, destination];
+      if (currentUser) {
+        AsyncStorage.setItem(`favorites_${currentUser}`, JSON.stringify(updated)).catch(console.error);
+      }
+      return updated;
+    });
+  }, [currentUser]);
 
   const removeFavorite = useCallback((id) => {
-    dispatch({ type: REMOVE_FAVORITE, payload: id });
-  }, []);
+    setFavorites((prev) => {
+      const updated = prev.filter((item) => item.id !== id);
+      if (currentUser) {
+        AsyncStorage.setItem(`favorites_${currentUser}`, JSON.stringify(updated)).catch(console.error);
+      }
+      return updated;
+    });
+  }, [currentUser]);
 
   const isFavorite = useCallback(
     (id) => favorites.some((item) => item.id === id),
@@ -45,25 +78,39 @@ export const FavoritesProvider = ({ children }) => {
 
   const toggleFavorite = useCallback(
     (destination) => {
-      if (favorites.some((item) => item.id === destination.id)) {
-        dispatch({ type: REMOVE_FAVORITE, payload: destination.id });
-      } else {
-        dispatch({ type: ADD_FAVORITE, payload: destination });
-      }
+      setFavorites((prev) => {
+        let updated;
+        if (prev.some((item) => item.id === destination.id)) {
+          updated = prev.filter((item) => item.id !== destination.id);
+        } else {
+          updated = [...prev, destination];
+        }
+        if (currentUser) {
+          AsyncStorage.setItem(`favorites_${currentUser}`, JSON.stringify(updated)).catch(console.error);
+        }
+        return updated;
+      });
     },
-    [favorites]
+    [currentUser]
   );
 
   return (
     <FavoritesContext.Provider
-      value={{ favorites, addFavorite, removeFavorite, isFavorite, toggleFavorite }}
+      value={{ 
+        favorites, 
+        addFavorite, 
+        removeFavorite, 
+        isFavorite, 
+        toggleFavorite, 
+        loadUserFavorites 
+      }}
     >
       {children}
     </FavoritesContext.Provider>
   );
 };
 
-// ── Custom hook for easy consumption ──
+// Custom hook for easy consumption
 export const useFavorites = () => {
   const context = useContext(FavoritesContext);
   if (!context) {
