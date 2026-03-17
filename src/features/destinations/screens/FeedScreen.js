@@ -43,6 +43,16 @@ const FeedScreen = ({ navigation }) => {
   const [userProfile, setUserProfile] = useState({ name: '', email: '' });
   const [isProfileMenuVisible, setProfileMenuVisible] = useState(false);
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return 'Good morning';
+    if (hour >= 12 && hour < 17) return 'Good afternoon';
+    if (hour >= 17 && hour < 21) return 'Good evening';
+    return 'Good night';
+  };
+
+  const greeting = getGreeting();
+
   const loadData = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
@@ -124,7 +134,7 @@ const FeedScreen = ({ navigation }) => {
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.greeting}>Good morning{userProfile.name ? `, ${userProfile.name.split(' ')[0]}` : ','}</Text>
+          <Text style={styles.greeting}>{greeting}{userProfile.name ? `, ${userProfile.name.split(' ')[0]}` : ','}</Text>
           <Text style={styles.title}>Where to next?</Text>
         </View>
         <TouchableOpacity 
