@@ -6,6 +6,7 @@
 import React from 'react';
 import { StyleSheet, Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import FeedScreen from '../features/destinations/screens/FeedScreen';
 import FavoritesScreen from '../features/favorites/screens/FavoritesScreen';
@@ -17,6 +18,7 @@ const Tab = createBottomTabNavigator();
 const MainTabNavigator = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const insets = useSafeAreaInsets();
 
   return (
     <Tab.Navigator
@@ -38,7 +40,13 @@ const MainTabNavigator = () => {
           fontSize: 11,
           marginTop: -2,
         },
-        tabBarStyle: styles.tabBar,
+        tabBarStyle: [
+          styles.tabBar,
+          {
+            height: Platform.OS === 'ios' ? 88 : 64 + insets.bottom,
+            paddingBottom: Platform.OS === 'ios' ? 28 : (insets.bottom > 0 ? insets.bottom : 8),
+          }
+        ],
       })}
     >
       <Tab.Screen name="Explore" component={FeedScreen} />
@@ -51,8 +59,6 @@ const createStyles = (colors) => StyleSheet.create({
   tabBar: {
     backgroundColor: colors.surface,
     borderTopWidth: 0,
-    height: Platform.OS === 'ios' ? 88 : 64,
-    paddingBottom: Platform.OS === 'ios' ? 28 : 8,
     paddingTop: 8,
     elevation: 12,
     shadowColor: '#000',

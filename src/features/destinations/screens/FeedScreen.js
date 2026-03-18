@@ -17,6 +17,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DestinationCard from '../components/DestinationCard';
 import { fetchDestinations } from '../services/destinationApi';
@@ -27,6 +28,7 @@ const CATEGORIES = ['All', 'Beaches', 'Mountains', 'Culture', 'Cities'];
 const FeedScreen = ({ navigation }) => {
   const { colors, isDarkMode, toggleTheme } = useTheme();
   const styles = createStyles(colors);
+  const insets = useSafeAreaInsets();
   const [destinations, setDestinations] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -265,7 +267,10 @@ const FeedScreen = ({ navigation }) => {
             onPress={() => navigation.navigate('Detail', { destination: item })}
           />
         )}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[
+          styles.list,
+          { paddingBottom: 40 + insets.bottom }
+        ]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
