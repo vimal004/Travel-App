@@ -1,30 +1,28 @@
 {
   "expo": {
-    "name": "RN-App",
-    "slug": "RN-App",
+    "name": "Wanderlust",
+    "slug": "wanderlust",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/wanderlust-icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/wanderlust-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "ios": {
-      "supportsTablet": true
-    },
+
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "foregroundImage": "./assets/wanderlust-icon.png",
+        "backgroundImage": "./assets/wanderlust-icon.png",
+        "monochromeImage": "./assets/wanderlust-icon.png"
       },
-      "package": "com.vimalmanoharan2004.RNApp"
+      "package": "com.vimalmanoharan2004.wanderlust"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/wanderlust-icon.png"
     },
     "plugins": [
       "expo-font"
