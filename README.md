@@ -13,7 +13,7 @@ A high-performance, aesthetically pleasing travel application built with **React
 
 Wanderlust is designed for the modern traveler who values both functionality and aesthetics. It serves as a comprehensive travel companion, allowing users to explore trending destinations, view detailed itineraries, and manage their favorite spots—all within a sleek, high-refresh-rate interface.
 
-### Key Highlights for Recruiters:
+### Key Highlights:
 - **Clean Architecture:** Implements a feature-based modular folder structure for high scalability and maintainability.
 - **Advanced UI/UX:** Adheres to Material 3 design guidelines with custom elevations, glassmorphism, and dynamic lighting.
 - **Performance Optimized:** Leverages `react-native-reanimated` for 60FPS transitions and shimmer effects for optimized perceived latency.
@@ -42,7 +42,7 @@ Wanderlust is designed for the modern traveler who values both functionality and
 - **State/Theme:** React Context API & [Async Storage](https://react-native-async-storage.github.io/async-storage/)
 - **Animations:** [React Native Reanimated](https://docs.swmansion.com/react-native-reanimated/) & [Lottie](https://airbnb.io/lottie/)
 - **Styling:** Material 3 System with custom CSS-in-JS
-- **Typography:** DM Sans (Google Fonts)
+- **Typography:** Google Sans (Google Fonts)
 - **Icons:** Expo Vector Icons (Material Community Icons & Lucide)
 
 ---
