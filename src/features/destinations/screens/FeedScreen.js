@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   FlatList,
@@ -11,9 +11,11 @@ import {
   ScrollView,
   Modal,
   Platform,
-  TouchableWithoutFeedback
+  TouchableWithoutFeedback,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DestinationCard from '../components/DestinationCard';
@@ -33,7 +35,7 @@ const FeedScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
   
   // Profile specific state
-  const [userProfile, setUserProfile] = useState({ name: '', email: '' });
+  const [userProfile, setUserProfile] = useState({ name: '', email: '', avatar: null });
   const [isProfileMenuVisible, setProfileMenuVisible] = useState(false);
 
   const getGreeting = () => {
@@ -63,27 +65,41 @@ const FeedScreen = ({ navigation }) => {
   }, [loadData]);
 
   // Fetch logged-in user details
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        const email = await AsyncStorage.getItem('currentUser');
-        if (email) {
-          const usersStr = await AsyncStorage.getItem('users_db');
-          if (usersStr) {
-            const users = JSON.parse(usersStr);
-            if (users[email]) {
-              setUserProfile({ name: users[email].name, email: email });
-            } else {
-              setUserProfile({ name: 'Traveler', email: email });
-            }
+  const fetchUserProfile = useCallback(async () => {
+    try {
+      const email = await AsyncStorage.getItem('currentUser');
+      if (email) {
+        // Get basic name/email
+        let name = 'Traveler';
+        const usersStr = await AsyncStorage.getItem('users_db');
+        if (usersStr) {
+          const users = JSON.parse(usersStr);
+          if (users[email]) {
+            name = users[email].name;
           }
         }
-      } catch (error) {
-        console.error("Error fetching user profile", error);
+
+        // Get extended profile (avatar, etc)
+        let avatar = null;
+        const profileStr = await AsyncStorage.getItem(`profile_${email}`);
+        if (profileStr) {
+          const savedProfile = JSON.parse(profileStr);
+          avatar = savedProfile.avatar;
+          if (savedProfile.name) name = savedProfile.name;
+        }
+
+        setUserProfile({ name, email, avatar });
       }
-    };
-    fetchUserProfile();
+    } catch (error) {
+      console.error("Error fetching user profile", error);
+    }
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchUserProfile();
+    }, [fetchUserProfile])
+  );
 
   // Handle Filtering
   useEffect(() => {
@@ -141,7 +157,11 @@ const FeedScreen = ({ navigation }) => {
             style={styles.avatar} 
             onPress={() => setProfileMenuVisible(true)}
           >
-            <Ionicons name="person" size={20} color={colors.primary} />
+            {userProfile.avatar ? (
+              <Image source={{ uri: userProfile.avatar }} style={styles.avatarIconImage} />
+            ) : (
+              <Ionicons name="person" size={20} color={colors.primary} />
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -160,8 +180,19 @@ const FeedScreen = ({ navigation }) => {
         >
           <TouchableWithoutFeedback>
             <View style={styles.profileMenu}>
-              <Text style={styles.profileName}>{userProfile.name || 'User'}</Text>
-              <Text style={styles.profileEmail}>{userProfile.email}</Text>
+              <View style={styles.menuHeader}>
+                {userProfile.avatar ? (
+                  <Image source={{ uri: userProfile.avatar }} style={styles.menuAvatar} />
+                ) : (
+                  <View style={styles.menuAvatarPlaceholder}>
+                    <Ionicons name="person" size={24} color={colors.primary} />
+                  </View>
+                )}
+                <View style={styles.menuHeaderText}>
+                  <Text style={styles.profileName} numberOfLines={1}>{userProfile.name || 'User'}</Text>
+                  <Text style={styles.profileEmail} numberOfLines={1}>{userProfile.email}</Text>
+                </View>
+              </View>
               <View style={styles.menuDivider} />
               <TouchableOpacity 
                 style={styles.menuItem} 
@@ -298,7 +329,14 @@ const createStyles = (colors) => StyleSheet.create({
     borderRadius: 24,
     backgroundColor: colors.surfaceVariant,
     alignItems: 'center',
+    alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  avatarIconImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
   },
   modalOverlay: {
     flex: 1,
@@ -318,17 +356,38 @@ const createStyles = (colors) => StyleSheet.create({
     shadowRadius: 12,
     minWidth: 220,
   },
+  menuHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  menuAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    marginRight: 12,
+  },
+  menuAvatarPlaceholder: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.surfaceVariant,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  menuHeaderText: {
+    flex: 1,
+  },
   profileName: {
     fontFamily: 'GoogleSans-Bold',
     fontSize: 18,
     color: colors.primaryText,
-    marginBottom: 4,
   },
   profileEmail: {
     fontFamily: 'GoogleSans-Regular',
     fontSize: 14,
     color: colors.secondaryText,
-    marginBottom: 16,
   },
   menuDivider: {
     height: 1,

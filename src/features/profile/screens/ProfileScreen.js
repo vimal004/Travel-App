@@ -46,7 +46,7 @@ const ProfileScreen = ({ navigation }) => {
 
   // Autofill location if empty when entering edit mode
   useEffect(() => {
-    if (isEditing && !profile.location) {
+    if (isEditing && (!profile.location || profile.location.trim() === '')) {
       fetchLocation(false);
     }
   }, [isEditing]);
@@ -189,23 +189,33 @@ const ProfileScreen = ({ navigation }) => {
         return;
       }
 
-      let locationResponse = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
+      // Try to get last known position first (much faster)
+      let locationResponse = await Location.getLastKnownPositionAsync({});
+      
+      // If no last known position or it's too old, get current
+      if (!locationResponse) {
+        locationResponse = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+      }
 
-      let reverseGeocode = await Location.reverseGeocodeAsync({
-        latitude: locationResponse.coords.latitude,
-        longitude: locationResponse.coords.longitude,
-      });
+      const { latitude, longitude } = locationResponse.coords;
+      let reverseGeocode = await Location.reverseGeocodeAsync({ latitude, longitude });
 
       if (reverseGeocode && reverseGeocode.length > 0) {
         const address = reverseGeocode[0];
-        // Combine address components intelligently
-        const city = address.city || address.subregion || address.district;
+        
+        // Intelligent extraction of city/locality
+        const city = address.city || address.subregion || address.district || address.name || address.city;
         const region = address.region;
         const country = address.country;
         
-        const locationString = [city, region, country].filter(Boolean).join(', ');
+        const locationParts = [];
+        if (city && city !== address.region) locationParts.push(city);
+        if (region) locationParts.push(region);
+        if (country) locationParts.push(country);
+        
+        const locationString = locationParts.filter(Boolean).join(', ');
         
         if (locationString) {
           setProfile(prev => ({ ...prev, location: locationString }));
