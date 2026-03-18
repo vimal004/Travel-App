@@ -15,6 +15,7 @@ import MainTabNavigator from './MainTabNavigator';
 import DetailScreen from '../features/destinations/screens/DetailScreen';
 import SignupScreen from '../features/auth/screens/SignupScreen';
 import WelcomeScreen from '../features/auth/screens/WelcomeScreen';
+import ProfileScreen from '../features/profile/screens/ProfileScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -77,6 +78,13 @@ const RootNavigator = () => {
       <Stack.Screen
         name="Detail"
         component={DetailScreen}
+        options={{
+          animation: 'slide_from_right',
+        }}
+      />
+      <Stack.Screen
+        name="Profile"
+        component={ProfileScreen}
         options={{
           animation: 'slide_from_right',
         }}

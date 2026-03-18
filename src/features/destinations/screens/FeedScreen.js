@@ -163,6 +163,17 @@ const FeedScreen = ({ navigation }) => {
               <Text style={styles.profileName}>{userProfile.name || 'User'}</Text>
               <Text style={styles.profileEmail}>{userProfile.email}</Text>
               <View style={styles.menuDivider} />
+              <TouchableOpacity 
+                style={styles.menuItem} 
+                onPress={() => {
+                  setProfileMenuVisible(false);
+                  navigation.navigate('Profile');
+                }}
+              >
+                <Ionicons name="person-outline" size={20} color={colors.primary} />
+                <Text style={styles.menuItemText}>View Profile</Text>
+              </TouchableOpacity>
+              <View style={styles.menuDivider} />
               <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
                 <Ionicons name="log-out-outline" size={20} color={colors.error} />
                 <Text style={styles.logoutText}>Logout</Text>
@@ -322,7 +333,18 @@ const createStyles = (colors) => StyleSheet.create({
   menuDivider: {
     height: 1,
     backgroundColor: colors.surfaceVariant,
-    marginBottom: 16,
+    marginVertical: 12,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  menuItemText: {
+    fontFamily: 'GoogleSans-Medium',
+    fontSize: 16,
+    color: colors.primaryText,
+    marginLeft: 12,
   },
   logoutButton: {
     flexDirection: 'row',
