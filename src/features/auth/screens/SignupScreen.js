@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { isValidEmail } from '../../../utils/helpers';
 import { useFavorites } from '../../favorites/context/FavoritesContext';
 import { useTheme } from '../../../config/ThemeContext';
+import { useRouter } from 'expo-router';
 
 const M3TextInput = ({ icon, placeholder, secureTextEntry, value, onChangeText, error, colors, styles }) => {
   const [isFocused, setIsFocused] = useState(false);
@@ -38,9 +39,10 @@ const M3TextInput = ({ icon, placeholder, secureTextEntry, value, onChangeText, 
   );
 };
 
-const SignupScreen = ({ navigation }) => {
+const SignupScreen = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const router = useRouter();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -90,7 +92,7 @@ const SignupScreen = ({ navigation }) => {
         await loadUserFavorites(normalizedEmail);
 
         // Navigate
-        navigation.replace('Main');
+        router.replace('/(tabs)/explore');
       } catch (error) {
         console.error('Failed to save user data:', error);
       }
@@ -99,7 +101,7 @@ const SignupScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.root}>
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()} hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}>
+      <TouchableOpacity style={styles.backButton} onPress={() => router.back()} hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}>
         <Ionicons name="arrow-back" size={26} color={colors.primaryText} />
       </TouchableOpacity>
 
@@ -129,7 +131,7 @@ const SignupScreen = ({ navigation }) => {
 
               <View style={styles.signupPrompt}>
                 <Text style={styles.promptText}>Already have an account? </Text>
-                <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
                   <Text style={styles.promptAction}>Sign in</Text>
                 </TouchableOpacity>
               </View>

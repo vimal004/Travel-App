@@ -22,11 +22,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import DestinationCard from '../components/DestinationCard';
 import { fetchDestinations } from '../services/destinationApi';
 import { useTheme } from '../../../config/ThemeContext';
+import { useRouter } from 'expo-router';
 
 const CATEGORIES = ['All', 'Beaches', 'Mountains', 'Culture', 'Cities'];
 
-const FeedScreen = ({ navigation }) => {
+const FeedScreen = () => {
   const { colors, isDarkMode, toggleTheme } = useTheme();
+  const router = useRouter();
   const styles = createStyles(colors);
   const insets = useSafeAreaInsets();
   const [destinations, setDestinations] = useState([]);
@@ -124,8 +126,10 @@ const FeedScreen = ({ navigation }) => {
       // Clear session data
       await AsyncStorage.removeItem('session');
       await AsyncStorage.removeItem('currentUser');
-      // Navigate to Auth flow
-      navigation.replace('Welcome');
+      // Navigate to Auth flow after modal animation clears Native transition lock
+      setTimeout(() => {
+        router.replace('/');
+      }, 100);
     } catch (error) {
       console.error('Logout Error:', error);
     }
@@ -200,7 +204,7 @@ const FeedScreen = ({ navigation }) => {
                 style={styles.menuItem} 
                 onPress={() => {
                   setProfileMenuVisible(false);
-                  navigation.navigate('Profile');
+                  router.push('/profile');
                 }}
               >
                 <Ionicons name="person-outline" size={20} color={colors.primary} />
@@ -264,7 +268,7 @@ const FeedScreen = ({ navigation }) => {
         renderItem={({ item }) => (
           <DestinationCard
             item={item}
-            onPress={() => navigation.navigate('Detail', { destination: item })}
+            onPress={() => router.push({ pathname: '/detail/[id]', params: { id: item.id, destination: JSON.stringify(item) } })}
           />
         )}
         contentContainerStyle={[

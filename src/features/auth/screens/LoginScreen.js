@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { isValidEmail } from '../../../utils/helpers';
 import { useFavorites } from '../../favorites/context/FavoritesContext';
 import { useTheme } from '../../../config/ThemeContext';
+import { useRouter } from 'expo-router';
 
 const M3TextInput = ({ icon, placeholder, secureTextEntry, value, onChangeText, error, colors, styles }) => {
   const [isFocused, setIsFocused] = useState(false);
@@ -38,9 +39,10 @@ const M3TextInput = ({ icon, placeholder, secureTextEntry, value, onChangeText, 
   );
 };
 
-const LoginScreen = ({ navigation }) => {
+const LoginScreen = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
@@ -88,7 +90,7 @@ const LoginScreen = ({ navigation }) => {
         await loadUserFavorites(normalizedEmail);
 
         // Login successful
-        navigation.replace('Main');
+        router.replace('/(tabs)/explore');
       } catch (error) {
         console.error('Login Error:', error);
       }
@@ -97,7 +99,7 @@ const LoginScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.root}>
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()} hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}>
+      <TouchableOpacity style={styles.backButton} onPress={() => router.back()} hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}>
         <Ionicons name="arrow-back" size={26} color={colors.primaryText} />
       </TouchableOpacity>
 
@@ -147,7 +149,7 @@ const LoginScreen = ({ navigation }) => {
 
               <View style={styles.signupPrompt}>
                 <Text style={styles.promptText}>Don't have an account? </Text>
-                <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
+                <TouchableOpacity onPress={() => router.push('/(auth)/signup')}>
                   <Text style={styles.promptAction}>Create one</Text>
                 </TouchableOpacity>
               </View>

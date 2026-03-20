@@ -18,9 +18,11 @@ import Typography from '../../../components/Typography';
 import { useFavorites } from '../context/FavoritesContext';
 import { SIZES, SHADOWS, FONTS } from '../../../config/theme';
 import { useTheme } from '../../../config/ThemeContext';
+import { useRouter } from 'expo-router';
 
-const FavoritesScreen = ({ navigation }) => {
+const FavoritesScreen = () => {
   const { favorites, removeFavorite } = useFavorites();
+  const router = useRouter();
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -43,7 +45,7 @@ const FavoritesScreen = ({ navigation }) => {
           </Typography>
           <TouchableOpacity
             style={styles.exploreBtn}
-            onPress={() => navigation.navigate('Explore')}
+            onPress={() => router.push('/(tabs)/explore')}
           >
             <Typography variant="button" style={styles.exploreBtnText}>
               Explore Destinations
@@ -59,7 +61,7 @@ const FavoritesScreen = ({ navigation }) => {
     <TouchableOpacity
       activeOpacity={0.9}
       style={[styles.card, SHADOWS.card]}
-      onPress={() => navigation.navigate('Detail', { destination: item })}
+      onPress={() => router.push({ pathname: '/detail/[id]', params: { id: item.id, destination: JSON.stringify(item) } })}
     >
       <Image source={{ uri: item.image }} style={styles.cardImage} resizeMode="cover" />
       <View style={styles.cardInfo}>

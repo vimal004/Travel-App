@@ -3,12 +3,14 @@ import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 
 import { useTheme } from '../../../config/ThemeContext';
 
-const WelcomeScreen = ({ navigation }) => {
+const WelcomeScreen = () => {
   const { colors, isDarkMode } = useTheme();
   const styles = createStyles(colors);
+  const router = useRouter();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
   const floatAnim = useRef(new Animated.Value(0)).current;
@@ -53,7 +55,7 @@ const WelcomeScreen = ({ navigation }) => {
         <TouchableOpacity 
           style={styles.primaryButton} 
           activeOpacity={0.8}
-          onPress={() => navigation.navigate('Signup')}
+          onPress={() => router.push('/(auth)/signup')}
         >
           <Text style={styles.primaryButtonText}>Get Started</Text>
         </TouchableOpacity>
@@ -61,7 +63,7 @@ const WelcomeScreen = ({ navigation }) => {
         <TouchableOpacity 
           style={styles.secondaryButton} 
           activeOpacity={0.8}
-          onPress={() => navigation.navigate('Login')}
+          onPress={() => router.push('/(auth)/login')}
         >
           <Text style={styles.secondaryButtonText}>I already have an account</Text>
         </TouchableOpacity>

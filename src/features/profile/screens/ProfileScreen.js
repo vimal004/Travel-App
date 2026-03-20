@@ -19,10 +19,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { useTheme } from '../../../config/ThemeContext';
+import { useRouter } from 'expo-router';
 
-const ProfileScreen = ({ navigation }) => {
+const ProfileScreen = () => {
   const { colors, isDarkMode } = useTheme();
   const styles = createStyles(colors);
+  const router = useRouter();
 
   const [email, setEmail] = useState('');
   const [profile, setProfile] = useState({
@@ -241,7 +243,7 @@ const ProfileScreen = ({ navigation }) => {
     <SafeAreaView style={styles.root}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color={colors.primaryText} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>User Profile</Text>

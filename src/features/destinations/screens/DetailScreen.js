@@ -6,6 +6,7 @@ import { useFavorites } from '../../favorites/context/FavoritesContext';
 import ShimmerLoader from '../../../components/ShimmerLoader';
 
 import { useTheme } from '../../../config/ThemeContext';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -21,10 +22,12 @@ const QuickFact = ({ icon, title, value, colors, styles }) => (
   </View>
 );
 
-const DetailScreen = ({ route, navigation }) => {
+const DetailScreen = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const { destination } = route.params;
+  const router = useRouter();
+  const params = useLocalSearchParams();
+  const destination = typeof params.destination === 'string' ? JSON.parse(params.destination) : params.destination;
   const { isFavorite, toggleFavorite } = useFavorites();
   const [isLoaded, setIsLoaded] = React.useState(false);
   const liked = isFavorite(destination.id);
@@ -50,7 +53,7 @@ const DetailScreen = ({ route, navigation }) => {
             onLoad={() => setIsLoaded(true)}
           />
           {!isLoaded && <ShimmerLoader style={StyleSheet.absoluteFill} />}
-          <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color={colors.white} />
           </TouchableOpacity>
         </View>
